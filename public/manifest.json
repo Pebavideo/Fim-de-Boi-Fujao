@@ -1,0 +1,21 @@
+{
+  "name": "gestor-rural",
+  "short_name": "gestor-rural",
+  "theme_color": "#1a73e8",
+  "background_color": "#f0f2f5",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/logo192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
