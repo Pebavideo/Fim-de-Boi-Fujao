@@ -80,6 +80,13 @@ export default function PainelPrincipal() {
     }
   };
 
+  const handleFecharModalCadastro = () => {
+    setModalCadastroAberto(false);
+    setNumeroChip('');
+    setDescricaoChip('');
+    setValorChip('');
+  };
+
   const handleSalvarChip = async () => {
     if (!numeroChip.trim() || !descricaoChip.trim() || !valorChip.trim()) {
       alert('Preencha todos os campos!');
@@ -108,10 +115,7 @@ export default function PainelPrincipal() {
       setTotalItens(itensList.length || 0);
       setTotalValor(itensList.reduce((sum, item) => sum + (item.valor || 0), 0) || 0);
 
-      setModalCadastroAberto(false);
-      setNumeroChip('');
-      setDescricaoChip('');
-      setValorChip('');
+      handleFecharModalCadastro();
     }
   };
 
@@ -190,7 +194,29 @@ export default function PainelPrincipal() {
 
       {modalCadastroAberto && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
-          <div style={{ background: 'white', padding: '30px', borderRadius: '15px', width: '90%', maxWidth: '400px' }}>
+          <div style={{ position: 'relative', background: 'white', padding: '30px', borderRadius: '15px', width: '90%', maxWidth: '400px' }}>
+            <Button
+              type="button"
+              onClick={handleFecharModalCadastro}
+              aria-label="Fechar cadastro de chip"
+              style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                zIndex: 2100,
+                background: '#fff',
+                color: '#d32f2f',
+                border: '1px solid #d32f2f',
+                borderRadius: '999px',
+                width: '36px',
+                height: '36px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '16px'
+              }}
+            >
+              ✕
+            </Button>
             <h3 style={{ margin: '0 0 20px 0' }}>Cadastrar Chip</h3>
             <div style={{ marginBottom: '15px' }}>
               <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>Número do Chip</label>
@@ -223,7 +249,7 @@ export default function PainelPrincipal() {
               />
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
-              <Button onClick={() => setModalCadastroAberto(false)} className="btn-responsivo" style={{ flex: 1, background: '#9e9e9e', color: 'white', border: 'none', padding: '12px', borderRadius: '8px' }}>
+              <Button onClick={handleFecharModalCadastro} className="btn-responsivo" style={{ flex: 1, background: '#9e9e9e', color: 'white', border: 'none', padding: '12px', borderRadius: '8px' }}>
                 Cancelar
               </Button>
               <Button onClick={handleSalvarChip} className="btn-responsivo" style={{ flex: 1, background: '#1a73e8', color: 'white', border: 'none', padding: '12px', borderRadius: '8px' }}>

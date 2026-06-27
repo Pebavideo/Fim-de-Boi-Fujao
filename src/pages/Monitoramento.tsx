@@ -163,6 +163,13 @@ export default function Monitoramento() {
     setModalAberto(true);
   };
 
+  const handleFecharModal = () => {
+    setModalAberto(false);
+    setItemEditando(null);
+    setNomeEdit('');
+    setValorEdit('');
+  };
+
   const handleSalvarEdicao = async () => {
     if (!nomeEdit.trim() || !valorEdit.trim()) {
       alert('Preencha todos os campos!');
@@ -187,8 +194,7 @@ export default function Monitoramento() {
       })) as Item[];
       setItens(itemsList);
 
-      setModalAberto(false);
-      setItemEditando(null);
+      handleFecharModal();
     }
   };
 
@@ -334,7 +340,29 @@ export default function Monitoramento() {
 
       {modalAberto && itemEditando && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
-          <div style={{ background: 'white', padding: '30px', borderRadius: '15px', width: '90%', maxWidth: '400px' }}>
+          <div style={{ position: 'relative', background: 'white', padding: '30px', borderRadius: '15px', width: '90%', maxWidth: '400px' }}>
+            <Button
+              type="button"
+              onClick={handleFecharModal}
+              aria-label="Fechar edição de item"
+              style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                zIndex: 2100,
+                background: '#fff',
+                color: '#d32f2f',
+                border: '1px solid #d32f2f',
+                borderRadius: '999px',
+                width: '36px',
+                height: '36px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '16px'
+              }}
+            >
+              ✕
+            </Button>
             <h3 style={{ margin: '0 0 20px 0' }}>Editar Item</h3>
             <div style={{ marginBottom: '15px' }}>
               <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>Nome</label>
@@ -357,7 +385,7 @@ export default function Monitoramento() {
               />
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
-              <Button onClick={() => setModalAberto(false)} className="btn-responsivo" style={{ flex: 1, background: '#9e9e9e', color: 'white', border: 'none', padding: '12px', borderRadius: '8px' }}>
+              <Button onClick={handleFecharModal} className="btn-responsivo" style={{ flex: 1, background: '#9e9e9e', color: 'white', border: 'none', padding: '12px', borderRadius: '8px' }}>
                 Cancelar
               </Button>
               <Button onClick={handleSalvarEdicao} className="btn-responsivo" style={{ flex: 1, background: '#1a73e8', color: 'white', border: 'none', padding: '12px', borderRadius: '8px' }}>
