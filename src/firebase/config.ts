@@ -13,7 +13,16 @@ const firebaseConfig = {
   appId: "YOUR_APP_ID"
 };
 
+const isFirebaseConfigured = !Object.values(firebaseConfig).some((value) => {
+  return typeof value === "string" && value.includes("YOUR_");
+});
+
+if (!isFirebaseConfigured) {
+  console.error("Firebase config is still using placeholder values. Update src/firebase/config.ts with the real project credentials before using Google authentication.");
+}
+
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
+export { isFirebaseConfigured };

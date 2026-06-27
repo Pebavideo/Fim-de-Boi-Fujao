@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db, googleProvider } from '../firebase/config';
+import { auth, db, googleProvider, isFirebaseConfigured } from '../firebase/config';
 import { signInWithPopup, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import Button from '../components/Button';
@@ -26,10 +26,24 @@ export default function Login() {
 
   const handleGoogleSignIn = async () => {
     setCarregando(true);
+
+    if (!isFirebaseConfigured) {
+      console.error('Não foi possível iniciar o login com Google porque a configuração do Firebase ainda está em modo placeholder.');
+      setCarregando(false);
+      return;
+    }
+
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      const userDocRef = doc(db, 'lojistas', user.email || '');
+      const email = user.email?.trim();
+
+      if (!email) {
+        console.error('Login com Google concluído, mas o e-mail autenticado não foi retornado pela sessão.');
+        return;
+      }
+
+      const userDocRef = doc(db, 'lojistas', email);
       const userDocSnap = await getDoc(userDocRef);
 
       if (userDocSnap.exists()) {
@@ -37,8 +51,12 @@ export default function Login() {
       } else {
         navigate('/cadastro-animais');
       }
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('Falha no fluxo de login com Google', {
+        code: err?.code,
+        message: err?.message,
+        stack: err?.stack
+      });
     } finally {
       setCarregando(false);
     }
