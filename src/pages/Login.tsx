@@ -49,7 +49,7 @@ export default function Login() {
       if (userDocSnap.exists()) {
         navigate('/painel-principal');
       } else {
-        navigate('/cadastro-animais');
+        navigate('/completar-cadastro');
       }
     } catch (err: any) {
       console.error('Falha no fluxo de login com Google', {
