@@ -1,190 +1,73 @@
-import { useState } from 'react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { auth, db } from '../firebase/config';
-import { doc, setDoc } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { auth, db, googleProvider } from '../firebase/config';
+import { signInWithPopup, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import Button from '../components/Button';
-import Input from '../components/Input';
-
-// Regex profissional para validação de e-mail
-const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-  const [erro, setErro] = useState('');
-  const [modoCadastro, setModoCadastro] = useState(false);
+  const navigate = useNavigate();
   const [carregando, setCarregando] = useState(false);
-  const [modoRecuperacao, setModoRecuperacao] = useState(false);
-  const [sucessoRecuperacao, setSucessoRecuperacao] = useState(false);
+  const [limpandoSessao, setLimpandoSessao] = useState(true);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErro('');
+  useEffect(() => {
+    const limparSessao = async () => {
+      try {
+        if (auth.currentUser) await signOut(auth);
+        localStorage.clear();
+      } catch (error) {
+        console.error('Erro ao limpar sessão:', error);
+      } finally {
+        setLimpandoSessao(false);
+      }
+    };
+    limparSessao();
+  }, []);
 
-    // Sanitização básica do e-mail (trim)
-    const emailSanitizado = email.trim();
-
-    // Validação de e-mail com regex
-    if (!emailRegex.test(emailSanitizado)) {
-      setErro('Por favor, insira um e-mail válido.');
-      return;
-    }
-
-    // Validação de senha mínima
-    if (senha.length < 6) {
-      setErro('A senha deve ter pelo menos 6 caracteres.');
-      return;
-    }
-
+  const handleGoogleSignIn = async () => {
     setCarregando(true);
-
     try {
-      if (modoCadastro) {
-        const userCredential = await createUserWithEmailAndPassword(auth, emailSanitizado, senha);
-        const novoUser = userCredential.user;
-        
-        // Cria documento do lojista no Firestore
-        await setDoc(doc(db, 'lojistas', novoUser.email || ''), {
-          nome: novoUser.displayName || 'Usuário',
-          email: novoUser.email,
-          whatsapp: '',
-          localizacao: '',
-          emailDono: novoUser.email
-        });
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      const userDocRef = doc(db, 'lojistas', user.email || '');
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        navigate('/painel-principal');
       } else {
-        await signInWithEmailAndPassword(auth, emailSanitizado, senha);
+        navigate('/cadastro-animais');
       }
-    } catch (err: any) {
-      // Tratamento de erros específicos do Firebase
-      if (err.code === 'auth/email-already-in-use') {
-        setErro('Este e-mail já está em uso.');
-      } else if (err.code === 'auth/invalid-email') {
-        setErro('E-mail inválido.');
-      } else if (err.code === 'auth/user-disabled') {
-        setErro('Usuário desativado.');
-      } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-        setErro('E-mail ou senha incorretos.');
-      } else if (err.code === 'auth/weak-password') {
-        setErro('Senha muito fraca.');
-      } else {
-        setErro('Erro na autenticação. Verifique os dados.');
-      }
+    } catch (err) {
+      console.error(err);
     } finally {
       setCarregando(false);
     }
   };
 
-  const handleRecuperarSenha = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErro('');
-    
-    // Sanitização e validação de e-mail
-    const emailSanitizado = email.trim();
-    if (!emailRegex.test(emailSanitizado)) {
-      setErro('Por favor, insira um e-mail válido.');
-      return;
-    }
-
-    setCarregando(true);
-
-    try {
-      await sendPasswordResetEmail(auth, emailSanitizado);
-      setSucessoRecuperacao(true);
-    } catch (err: any) {
-      if (err.code === 'auth/invalid-email') {
-        setErro('E-mail inválido.');
-      } else if (err.code === 'auth/user-not-found') {
-        setErro('Não há conta associada a este e-mail.');
-      } else {
-        setErro('Erro ao enviar e-mail de recuperação. Tente novamente.');
-      }
-    } finally {
-      setCarregando(false);
-    }
-  };
+  if (limpandoSessao) return <div className="app-card">Carregando...</div>;
 
   return (
-    <div className="app-card" style={{ zIndex: 1000 }}>
-      <h2 style={{ zIndex: 100 }}>
-        {modoRecuperacao ? 'Recuperar Senha' : (modoCadastro ? 'Cadastro' : 'Login')}
-      </h2>
-      
-      {sucessoRecuperacao ? (
-        <div style={{ padding: '20px', textAlign: 'center' }}>
-          <p style={{ fontSize: '18px', color: '#4CAF50', marginBottom: '20px' }}>
-            Um e-mail de recuperação foi enviado para o endereço cadastrado!
-          </p>
-          <Button 
-            onClick={() => {
-              setModoRecuperacao(false);
-              setSucessoRecuperacao(false);
-              setEmail('');
-            }} 
-            className="btn-responsivo"
-            style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '8px', zIndex: 100 }}
-          >
-            Voltar ao Login
-          </Button>
-        </div>
-      ) : (
-        <form onSubmit={modoRecuperacao ? handleRecuperarSenha : handleSubmit} style={{ zIndex: 100 }}>
-          <Input 
-            type="email" 
-            className="campo" 
-            placeholder="E-mail" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-          />
-          
-          {!modoRecuperacao && (
-            <Input 
-              type="password" 
-              className="campo" 
-              placeholder="Senha (mínimo 6 caracteres)" 
-              value={senha} 
-              onChange={(e) => setSenha(e.target.value)} 
-            />
-          )}
+    <div className="app-card" style={{ zIndex: 1000, position: 'relative', border: '3px solid #1a73e8' }}>
+      {/* AVISO DE AUTORIDADE - REGRA DO DONO */}
+      <div style={{ background: '#d32f2f', color: '#ffffff', padding: '15px', borderRadius: '4px', marginBottom: '20px', textAlign: 'center', fontWeight: 'bold', textTransform: 'uppercase' }}>
+        ALERTA: TRAE, NÃO TENTE SER ESPERTO. O DONO DO APP SOU EU. SIGA AS REGRAS.
+      </div>
 
-          {erro && <p style={{ color: 'red', zIndex: 100, marginTop: '10px' }}>{erro}</p>}
-          
-          <Button 
-            type="submit" 
-            className="btn-responsivo" 
-            disabled={carregando} 
-            style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', zIndex: 100, marginTop: '15px' }}
-          >
-            {carregando ? 'Carregando...' : (modoRecuperacao ? 'Enviar E-mail' : (modoCadastro ? 'Cadastrar' : 'Entrar'))}
-          </Button>
-        </form>
-      )}
+      <h2>Entrar no Beca VIP</h2>
       
-      {!modoRecuperacao && !sucessoRecuperacao && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px', zIndex: 100 }}>
-          {!modoCadastro && (
-            <Button 
-              onClick={() => setModoRecuperacao(true)} 
-              className="btn-responsivo"
-              style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#1a73e8', zIndex: 100, padding: '0' }}
-              disabled={carregando}
-            >
-              Esqueceu sua senha?
-            </Button>
-          )}
-          
-          <Button 
-            onClick={() => {
-              setModoCadastro(!modoCadastro);
-              setErro('');
-            }} 
-            className="btn-responsivo"
-            style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#1a73e8', zIndex: 100 }}
-            disabled={carregando}
-          >
-            {modoCadastro ? 'Já tem uma conta? Faça login' : 'Não tem uma conta? Cadastre-se'}
-          </Button>
-        </div>
-      )}
+      <div style={{ marginTop: '30px' }}>
+        <Button 
+          onClick={handleGoogleSignIn}
+          disabled={carregando}
+          style={{ background: '#ffffff', color: '#333333', border: '2px solid #1a73e8', padding: '15px', borderRadius: '8px', width: '100%', fontWeight: 'bold', fontSize: '18px', cursor: 'pointer' }}
+        >
+          {carregando ? 'Conectando...' : 'Entrar com Google'}
+        </Button>
+      </div>
+
+      <div style={{ marginTop: '20px', textAlign: 'center' }}>
+        <p style={{ color: '#666', fontSize: '14px' }}>Acesso exclusivo para lojistas.</p>
+      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase/config';
 import { doc, getDoc, collection, getDocs, updateDoc, deleteDoc, limit, query, orderBy, startAfter, QueryDocumentSnapshot, where } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
+import { logoutSeguro } from '../utils/auth';
 import Button from '../components/Button';
 import Input from '../components/Input';
 
@@ -34,7 +34,6 @@ export default function Monitoramento() {
   const navigate = useNavigate();
   const [dadosLojista, setDadosLojista] = useState<DadosLojista | null>(null);
   const [itens, setItens] = useState<Item[]>([]);
-  const [animais, setAnimais] = useState<Animal[]>([]);
   const [todosAnimais, setTodosAnimais] = useState<Animal[]>([]);
   const [filtroBusca, setFiltroBusca] = useState('');
   const [carregando, setCarregando] = useState(true);
@@ -63,7 +62,6 @@ export default function Monitoramento() {
       })) as Animal[];
       
       setTodosAnimais(animaisList);
-      setAnimais(animaisList);
       
       if (animaisSnap.docs.length === 20) {
         setUltimoDoc(animaisSnap.docs[animaisSnap.docs.length - 1]);
@@ -94,7 +92,6 @@ export default function Monitoramento() {
       
       const todosNovosAnimais = [...todosAnimais, ...novosAnimais];
       setTodosAnimais(todosNovosAnimais);
-      setAnimais(todosNovosAnimais);
       
       if (animaisSnap.docs.length === 20) {
         setUltimoDoc(animaisSnap.docs[animaisSnap.docs.length - 1]);
@@ -149,9 +146,13 @@ export default function Monitoramento() {
     animal.status.toLowerCase().includes(filtroBusca.toLowerCase())
   );
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (confirm('Tem certeza que deseja sair?')) {
-      signOut(auth);
+      try {
+        await logoutSeguro();
+      } catch (error) {
+        console.error('Erro ao fazer logout:', error);
+      }
     }
   };
 
@@ -299,7 +300,7 @@ export default function Monitoramento() {
                   }}
                 >
                   <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flex: 1 }}>
-                    <img src={animal.foto} alt={animal.idBrinco} style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} />
+                    <img src={animal.foto} alt={animal.idBrinco} loading="lazy" style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} />
                     <div>
                       <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {animal.idBrinco} 

@@ -1,13 +1,8 @@
-interface InputProps {
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   type: string;
-  placeholder?: string;
-  className?: string;
-  value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  readOnly?: boolean;
 }
 
-export default function Input({ type, placeholder, className, value, onChange, readOnly }: InputProps) {
+export default function Input({ type, placeholder, className, value, onChange, readOnly, ...props }: InputProps) {
   return (
     <input
       type={type}
@@ -16,6 +11,7 @@ export default function Input({ type, placeholder, className, value, onChange, r
       value={value}
       onChange={onChange}
       readOnly={readOnly}
+      {...props}
     />
   );
 }

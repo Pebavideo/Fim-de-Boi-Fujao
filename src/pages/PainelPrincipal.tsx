@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase/config';
-import { collection, getDocs, addDoc, query, where } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
+import { collection, getDocs, addDoc, query, where, doc, getDoc } from 'firebase/firestore';
+import { logoutSeguro } from '../utils/auth';
 import Button from '../components/Button';
 import Input from '../components/Input';
 
@@ -23,11 +23,35 @@ export default function PainelPrincipal() {
   const [numeroChip, setNumeroChip] = useState('');
   const [descricaoChip, setDescricaoChip] = useState('');
   const [valorChip, setValorChip] = useState('');
+  const [nomeLojista, setNomeLojista] = useState<string | null>(null);
+
+  const getSaudacao = (nome: string | null) => {
+    const hora = new Date().getHours();
+    if (!nome) {
+      return 'Olá, lojista!';
+    }
+    if (hora >= 5 && hora < 12) {
+      return `Bom dia, ${nome}! Um cheirinho de café para começar bem o dia.`;
+    } else if (hora >= 12 && hora < 18) {
+      return `Boa tarde, ${nome}! Que tal um café para renovar as energias?`;
+    } else {
+      return `Boa noite, ${nome}! Hora de encerrar as atividades com um café.`;
+    }
+  };
 
   useEffect(() => {
     const carregarDados = async () => {
       const user = auth.currentUser;
       if (user?.email) {
+        // Carregar dados do lojista
+        const lojistaDocRef = doc(db, 'lojistas', user.email);
+        const lojistaDocSnap = await getDoc(lojistaDocRef);
+        if (lojistaDocSnap.exists()) {
+          const dadosLojista = lojistaDocSnap.data();
+          setNomeLojista(dadosLojista.nome || null);
+        }
+
+        // Carregar itens
         const itemsRef = collection(db, 'itens');
         const itemsQ = query(itemsRef, where('emailDono', '==', user.email));
         const itemsSnap = await getDocs(itemsQ);
@@ -46,9 +70,13 @@ export default function PainelPrincipal() {
     carregarDados();
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (confirm('Tem certeza que deseja sair?')) {
-      signOut(auth);
+      try {
+        await logoutSeguro();
+      } catch (error) {
+        console.error('Erro ao fazer logout:', error);
+      }
     }
   };
 
@@ -94,8 +122,9 @@ export default function PainelPrincipal() {
   return (
     <div className="app-card" style={{ zIndex: 1000 }}>
       <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid #eee', zIndex: 100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <h2 style={{ margin: 0 }}>Painel Principal</h2>
+          <p style={{ margin: 0, color: '#666', fontSize: '16px' }}>{getSaudacao(nomeLojista)}</p>
         </div>
         <div style={{ display: 'flex', gap: '10px', zIndex: 100 }}>
           <Button onClick={() => navigate('/cadastro-animais')} className="btn-responsivo" style={{ background: '#2196F3', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', zIndex: 100 }}>
