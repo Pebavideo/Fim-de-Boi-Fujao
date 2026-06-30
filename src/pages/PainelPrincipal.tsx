@@ -10,13 +10,17 @@ const paginas = [
   { nome: 'Gestão de Pastos', caminho: '/gestao-pastos' },
   { nome: 'Gestão de Lotes', caminho: '/gestao-lotes' },
   { nome: 'Completar Cadastro', caminho: '/completar-cadastro' },
-  { nome: 'Detalhes Animal', caminho: '/detalhes-animal/1' },
-  { nome: 'Animal Detail', caminho: '/animal/1' },
-  { nome: 'Lote Detail', caminho: '/lote/1' }
+  { nome: 'Animal Detail (ID:1)', caminho: '/animal/1' },
+  { nome: 'Detalhes Animal (ID:1)', caminho: '/detalhes-animal/1' },
+  { nome: 'Lote Detail (ID:1)', caminho: '/lote/1' }
 ];
+
+console.log('✅ Array paginas:', paginas);
 
 export default function PainelPrincipal() {
   const navigate = useNavigate();
+
+  console.log('✅ Renderizando PainelPrincipal');
 
   const handleLogout = async () => {
     if (confirm('Tem certeza que deseja sair?')) {
@@ -45,11 +49,11 @@ export default function PainelPrincipal() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px', marginBottom: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '20px', background: '#f0f4ff', padding: '20px', borderRadius: '15px' }}>
         {paginas.map((pagina, index) => (
           <Link key={index} to={pagina.caminho} style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001, transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-              <h3 style={{ margin: '0 0 10px 0', color: '#1a73e8' }}>{pagina.nome}</h3>
+            <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #1a73e8', zIndex: 1001, transition: 'transform 0.2s', cursor: 'pointer' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-4px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+              <h3 style={{ margin: '0 0 10px 0', color: '#1a73e8', fontSize: '18px' }}>{pagina.nome}</h3>
               <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>{pagina.caminho}</p>
             </div>
           </Link>
