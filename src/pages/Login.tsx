@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { auth, db, googleProvider, isFirebaseConfigured } from '../firebase/config';
 import { signInWithPopup, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import Button from '../components/Button';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -25,6 +24,7 @@ export default function Login() {
   }, []);
 
   const handleGoogleSignIn = async () => {
+    console.log('Botão Google clicado');
     setCarregando(true);
 
     if (!isFirebaseConfigured) {
@@ -62,13 +62,16 @@ export default function Login() {
     }
   };
 
-  const handleFechar = () => navigate('/');
+  const handleFechar = () => {
+    console.log('Botão Fechar clicado');
+    navigate('/');
+  };
 
   if (limpandoSessao) return <div className="app-card">Carregando...</div>;
 
   return (
     <div className="app-card" style={{ zIndex: 1000, position: 'relative', border: '3px solid #1a73e8' }}>
-      <Button
+      <button
         type="button"
         onClick={handleFechar}
         aria-label="Fechar login"
@@ -89,22 +92,23 @@ export default function Login() {
         }}
       >
         ✕
-      </Button>
+      </button>
       {/* AVISO DE AUTORIDADE - REGRA DO DONO */}
       <div style={{ background: '#d32f2f', color: '#ffffff', padding: '15px', borderRadius: '4px', marginBottom: '20px', textAlign: 'center', fontWeight: 'bold', textTransform: 'uppercase' }}>
         ALERTA: TRAE, NÃO TENTE SER ESPERTO. O DONO DO APP SOU EU. SIGA AS REGRAS.
       </div>
 
-      <h2>Entrar no Beca VIP</h2>
+      <h2>Entrar no Fim de Boi Fujao</h2>
       
       <div style={{ marginTop: '30px' }}>
-        <Button 
+        <button
+          type="button"
           onClick={handleGoogleSignIn}
           disabled={carregando}
           style={{ background: '#ffffff', color: '#333333', border: '2px solid #1a73e8', padding: '15px', borderRadius: '8px', width: '100%', fontWeight: 'bold', fontSize: '18px', cursor: 'pointer' }}
         >
           {carregando ? 'Conectando...' : 'Entrar com Google'}
-        </Button>
+        </button>
       </div>
 
       <div style={{ marginTop: '20px', textAlign: 'center' }}>

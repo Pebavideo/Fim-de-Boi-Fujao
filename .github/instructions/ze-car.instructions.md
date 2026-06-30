@@ -33,3 +33,4 @@ description: "Regras de ouro do desenvolvedor ZE-CAR para alterações de autent
 - Não adivinhar comportamento.
 - Antes de qualquer ação, validar se a etapa anterior foi processada corretamente.
 - Para problemas de autenticação/popup, investigar configuração e fluxo real antes de modificar a lógica de UI.
+- O agente está proibido de executar deploys automáticos ou qualquer comando de publicação sem autorização por escrito do dono (ZeCar).

@@ -5,6 +5,7 @@ import { collection, getDocs, addDoc, query, where, doc, getDoc } from 'firebase
 import { logoutSeguro } from '../utils/auth';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import LayoutPadrao from '../components/LayoutPadrao';
 
 interface Item {
   id: string;
@@ -51,18 +52,20 @@ export default function PainelPrincipal() {
           setNomeLojista(dadosLojista.nome || null);
         }
 
-        // Carregar itens
+        // Carregar itens vinculados ao usuário
         const itemsRef = collection(db, 'itens');
-        const itemsQ = query(itemsRef, where('emailDono', '==', user.email));
-        const itemsSnap = await getDocs(itemsQ);
+        let itemsSnap = await getDocs(query(itemsRef, where('uidDono', '==', user.uid)));
+
+        if (itemsSnap.empty) {
+          itemsSnap = await getDocs(query(itemsRef, where('emailDono', '==', user.email)));
+        }
+
         const itensList = itemsSnap.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         })) as Item[];
         
         setItens(itensList);
-        setTotalItens(itensList.length || 0);
-        setTotalValor(itensList.reduce((sum, item) => sum + (item.valor || 0), 0) || 0);
       }
       setCarregando(false);
     };
@@ -101,10 +104,11 @@ export default function PainelPrincipal() {
           valor: parseFloat(valorChip),
           numeroChip: numeroChip,
           descricaoChip: descricaoChip,
-          emailDono: user.email
+          emailDono: user.email,
+          uidDono: user.uid
         });
 
-      const itemsQ = query(itemsRef, where('emailDono', '==', user.email));
+      const itemsQ = query(itemsRef, where('uidDono', '==', user.uid));
       const itemsSnap = await getDocs(itemsQ);
       const itensList = itemsSnap.docs.map(doc => ({
         id: doc.id,
@@ -112,8 +116,6 @@ export default function PainelPrincipal() {
       })) as Item[];
       
       setItens(itensList);
-      setTotalItens(itensList.length || 0);
-      setTotalValor(itensList.reduce((sum, item) => sum + (item.valor || 0), 0) || 0);
 
       handleFecharModalCadastro();
     }
@@ -123,8 +125,13 @@ export default function PainelPrincipal() {
     item.nome.toLowerCase().includes(busca.toLowerCase())
   );
 
+  useEffect(() => {
+    setTotalItens(itens.length);
+    setTotalValor(itens.reduce((sum, item) => sum + (item.valor || 0), 0));
+  }, [itens]);
+
   return (
-    <div className="app-card" style={{ zIndex: 1000 }}>
+    <LayoutPadrao>
       <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid #eee', zIndex: 100 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <h2 style={{ margin: 0 }}>Painel Principal</h2>
@@ -259,6 +266,6 @@ export default function PainelPrincipal() {
           </div>
         </div>
       )}
-    </div>
+    </LayoutPadrao>
   );
 }

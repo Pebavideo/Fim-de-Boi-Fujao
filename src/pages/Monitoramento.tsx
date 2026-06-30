@@ -5,6 +5,7 @@ import { doc, getDoc, collection, getDocs, updateDoc, deleteDoc, limit, query, o
 import { logoutSeguro } from '../utils/auth';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import LayoutPadrao from '../components/LayoutPadrao';
 
 interface DadosLojista {
   nome: string;
@@ -35,6 +36,9 @@ export default function Monitoramento() {
   const [dadosLojista, setDadosLojista] = useState<DadosLojista | null>(null);
   const [itens, setItens] = useState<Item[]>([]);
   const [todosAnimais, setTodosAnimais] = useState<Animal[]>([]);
+  const [pastos, setPastos] = useState<string[]>([]);
+  const [pastosCarregando, setPastosCarregando] = useState(true);
+  const [pastoSelecionado, setPastoSelecionado] = useState('');
   const [filtroBusca, setFiltroBusca] = useState('');
   const [carregando, setCarregando] = useState(true);
   const [ultimoDoc, setUltimoDoc] = useState<QueryDocumentSnapshot | null>(null);
@@ -102,6 +106,33 @@ export default function Monitoramento() {
     }
   };
 
+  const carregarPastosDoUsuario = async () => {
+    const user = auth.currentUser;
+    if (!user?.email) {
+      setPastos([]);
+      setPastosCarregando(false);
+      return;
+    }
+
+    try {
+      const pastosRef = collection(db, 'pastos_do_usuario');
+      const pastosQuery = query(pastosRef, where('emailDono', '==', user.email));
+      const pastosSnap = await getDocs(pastosQuery);
+      const listaPastos = pastosSnap.docs
+        .map((doc) => doc.data()?.nome)
+        .filter((nome): nome is string => typeof nome === 'string' && nome.trim() !== '')
+        .map((nome) => nome.trim())
+        .filter((value, index, self) => self.findIndex((n) => n.toLowerCase() === value.toLowerCase()) === index);
+
+      setPastos(listaPastos);
+    } catch (error) {
+      console.error('Erro ao carregar pastos do usuário:', error);
+      setPastos([]);
+    } finally {
+      setPastosCarregando(false);
+    }
+  };
+
   useEffect(() => {
     const carregarDados = async () => {
       const user = auth.currentUser;
@@ -137,14 +168,18 @@ export default function Monitoramento() {
     };
 
     carregarDados();
+    carregarPastosDoUsuario();
   }, []);
 
   // Filtro local
-  const animaisFiltrados = todosAnimais.filter(animal => 
-    animal.idBrinco.toLowerCase().includes(filtroBusca.toLowerCase()) ||
-    animal.categoria.toLowerCase().includes(filtroBusca.toLowerCase()) ||
-    animal.status.toLowerCase().includes(filtroBusca.toLowerCase())
-  );
+  const animaisFiltrados = todosAnimais.filter(animal => {
+    const matchesBusca = 
+      animal.idBrinco.toLowerCase().includes(filtroBusca.toLowerCase()) ||
+      animal.categoria.toLowerCase().includes(filtroBusca.toLowerCase()) ||
+      animal.status.toLowerCase().includes(filtroBusca.toLowerCase());
+    const matchesPasto = pastoSelecionado ? animal.pastoAtual === pastoSelecionado : true;
+    return matchesBusca && matchesPasto;
+  });
 
   const handleLogout = async () => {
     if (confirm('Tem certeza que deseja sair?')) {
@@ -220,7 +255,7 @@ export default function Monitoramento() {
   };
 
   return (
-    <div className="app-card" style={{ zIndex: 1000 }}>
+    <LayoutPadrao>
       <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid #eee', zIndex: 100 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <h2 style={{ margin: 0 }}>{dadosLojista?.nome || 'Monitoramento'}</h2>
@@ -235,8 +270,37 @@ export default function Monitoramento() {
         </div>
       </div>
 
+      <div style={{ marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
+        <Input
+          type="text"
+          placeholder="Buscar por brinco, categoria ou status..."
+          value={filtroBusca}
+          onChange={(e) => setFiltroBusca(e.target.value)}
+          className="campo"
+        />
+        <select
+          value={pastoSelecionado}
+          onChange={(e) => setPastoSelecionado(e.target.value)}
+          className="campo"
+          style={{ appearance: 'none', padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '1rem', width: '100%' }}
+        >
+          <option value="">Filtrar por pasto (todos)</option>
+          {pastosCarregando ? (
+            <option value="">Carregando pastos...</option>
+          ) : (
+            pastos.map((pasto) => (
+              <option key={pasto} value={pasto}>{pasto}</option>
+            ))
+          )}
+        </select>
+      </div>
+
       {carregando ? (
         <p>Carregando dados...</p>
+      ) : !todosAnimais.length ? (
+        <div style={{ padding: '20px 0', color: '#666', fontSize: '16px' }}>
+          Nenhum animal cadastrado no momento.
+        </div>
       ) : dadosLojista ? (
         <>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px', marginBottom: '20px' }}>
@@ -293,6 +357,8 @@ export default function Monitoramento() {
               return (
                 <li 
                   key={animal.id} 
+                  onClick={() => navigate(`/animal/${animal.id}`)}
+                  role="button"
                   style={{ 
                     background: fugiu ? '#ffebee' : 'white', 
                     border: fugiu ? '2px solid #f44336' : '1px solid #eee', 
@@ -302,7 +368,8 @@ export default function Monitoramento() {
                     display: 'flex', 
                     justifyContent: 'space-between', 
                     alignItems: 'center', 
-                    zIndex: 1001 
+                    zIndex: 1001,
+                    cursor: 'pointer'
                   }}
                 >
                   <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flex: 1 }}>
@@ -395,6 +462,6 @@ export default function Monitoramento() {
           </div>
         </div>
       )}
-    </div>
+    </LayoutPadrao>
   );
 }
