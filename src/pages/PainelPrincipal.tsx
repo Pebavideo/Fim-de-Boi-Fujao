@@ -1,7 +1,4 @@
-import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { auth } from '../firebase/config';
-import { onAuthStateChanged, User } from 'firebase/auth';
 import { logoutSeguro } from '../utils/auth';
 import Button from '../components/Button';
 import LayoutPadrao from '../components/LayoutPadrao';
@@ -20,15 +17,6 @@ const paginas = [
 
 export default function PainelPrincipal() {
   const navigate = useNavigate();
-  const [carregando, setCarregando] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (_user: User | null) => {
-      setCarregando(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   const handleLogout = async () => {
     if (confirm('Tem certeza que deseja sair?')) {
@@ -57,20 +45,16 @@ export default function PainelPrincipal() {
         </div>
       </div>
 
-      {carregando ? (
-        <p>Carregando...</p>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px', marginBottom: '20px' }}>
-          {paginas.map((pagina, index) => (
-            <Link key={index} to={pagina.caminho} style={{ textDecoration: 'none' }}>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001, transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                <h3 style={{ margin: '0 0 10px 0', color: '#1a73e8' }}>{pagina.nome}</h3>
-                <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>{pagina.caminho}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px', marginBottom: '20px' }}>
+        {paginas.map((pagina, index) => (
+          <Link key={index} to={pagina.caminho} style={{ textDecoration: 'none' }}>
+            <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001, transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+              <h3 style={{ margin: '0 0 10px 0', color: '#1a73e8' }}>{pagina.nome}</h3>
+              <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>{pagina.caminho}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
     </LayoutPadrao>
   );
 }
