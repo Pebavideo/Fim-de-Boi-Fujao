@@ -1,12 +1,30 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth, db } from '../firebase/config';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { collection, getDocs, addDoc, query, where, doc, getDoc } from 'firebase/firestore';
 import { logoutSeguro } from '../utils/auth';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import LayoutPadrao from '../components/LayoutPadrao';
 import AnimalDetail from './AnimalDetail';
+
+interface PaginaAcessivel {
+  id: string;
+  nome: string;
+  emoji: string;
+  cor: string;
+  descricao: string;
+  rota: string;
+}
+
+const paginas: PaginaAcessivel[] = [
+  { id: 'monitoramento', nome: 'Monitoramento', emoji: '📊', cor: '#1a73e8', descricao: 'Acompanhe os animais e pastagens', rota: '/monitoramento' },
+  { id: 'cadastro-animais', nome: 'Cadastro', emoji: '🐮', cor: '#25d366', descricao: 'Adicione novos animais', rota: '/cadastro-animais' },
+  { id: 'gestao-pastos', nome: 'Gestão de Pastos', emoji: '🌾', cor: '#ff9800', descricao: 'Gerencie suas áreas de pastagem', rota: '/gestao-pastos' },
+  { id: 'gestao-lotes', nome: 'Gestão de Lotes', emoji: '📦', cor: '#9c27b0', descricao: 'Organize animais em lotes', rota: '/gestao-lotes' },
+  { id: 'completar-cadastro', nome: 'Meus Dados', emoji: '👤', cor: '#607d8b', descricao: 'Atualize seu cadastro', rota: '/completar-cadastro' }
+];
 
 interface AnimalData {
   id: string;
@@ -50,36 +68,40 @@ export default function PainelPrincipal() {
   };
 
   useEffect(() => {
-    const carregarDados = async () => {
-      const user = auth.currentUser;
-      if (user?.email) {
-        // Carregar dados do lojista
-        const lojistaDocRef = doc(db, 'lojistas', user.email);
-        const lojistaDocSnap = await getDoc(lojistaDocRef);
-        if (lojistaDocSnap.exists()) {
-          const dadosLojista = lojistaDocSnap.data();
-          setNomeLojista(dadosLojista.nome || null);
+    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
+      try {
+        if (user?.email) {
+          // Carregar dados do lojista
+          const lojistaDocRef = doc(db, 'lojistas', user.email);
+          const lojistaDocSnap = await getDoc(lojistaDocRef);
+          if (lojistaDocSnap.exists()) {
+            const dadosLojista = lojistaDocSnap.data();
+            setNomeLojista(dadosLojista.nome || null);
+          }
+
+          // Carregar itens vinculados ao usuário
+          const itemsRef = collection(db, 'itens');
+          let itemsSnap = await getDocs(query(itemsRef, where('uidDono', '==', user.uid)));
+
+          if (itemsSnap.empty) {
+            itemsSnap = await getDocs(query(itemsRef, where('emailDono', '==', user.email)));
+          }
+
+          const itensList = itemsSnap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          })) as Item[];
+          
+          setItens(itensList);
         }
-
-        // Carregar itens vinculados ao usuário
-        const itemsRef = collection(db, 'itens');
-        let itemsSnap = await getDocs(query(itemsRef, where('uidDono', '==', user.uid)));
-
-        if (itemsSnap.empty) {
-          itemsSnap = await getDocs(query(itemsRef, where('emailDono', '==', user.email)));
-        }
-
-        const itensList = itemsSnap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Item[];
-        
-        setItens(itensList);
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+      } finally {
+        setCarregando(false);
       }
-      setCarregando(false);
-    };
+    });
 
-    carregarDados();
+    return () => unsubscribe();
   }, []);
 
   const handleLogout = async () => {
@@ -255,40 +277,14 @@ export default function PainelPrincipal() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px', marginBottom: '20px' }}>
-            <Link to="/monitoramento" style={{ textDecoration: 'none' }}>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001, transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                <h3 style={{ margin: '0 0 10px 0', color: '#1a73e8' }}>📊 Monitoramento</h3>
-                <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Acompanhe os animais e pastagens</p>
-              </div>
-            </Link>
-            
-            <Link to="/cadastro-animais" style={{ textDecoration: 'none' }}>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001, transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                <h3 style={{ margin: '0 0 10px 0', color: '#25d366' }}>🐮 Cadastro</h3>
-                <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Adicione novos animais</p>
-              </div>
-            </Link>
-            
-            <Link to="/gestao-pastos" style={{ textDecoration: 'none' }}>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001, transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                <h3 style={{ margin: '0 0 10px 0', color: '#ff9800' }}>🌾 Gestão de Pastos</h3>
-                <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Gerencie suas áreas de pastagem</p>
-              </div>
-            </Link>
-            
-            <Link to="/gestao-lotes" style={{ textDecoration: 'none' }}>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001, transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                <h3 style={{ margin: '0 0 10px 0', color: '#9c27b0' }}>📦 Gestão de Lotes</h3>
-                <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Organize animais em lotes</p>
-              </div>
-            </Link>
-            
-            <Link to="/completar-cadastro" style={{ textDecoration: 'none' }}>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001, transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                <h3 style={{ margin: '0 0 10px 0', color: '#607d8b' }}>👤 Meus Dados</h3>
-                <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Atualize seu cadastro</p>
-              </div>
-            </Link>
+            {paginas.map((pagina) => (
+              <Link key={pagina.id} to={pagina.rota} style={{ textDecoration: 'none' }}>
+                <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001, transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                  <h3 style={{ margin: '0 0 10px 0', color: pagina.cor }}>{pagina.emoji} {pagina.nome}</h3>
+                  <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>{pagina.descricao}</p>
+                </div>
+              </Link>
+            ))}
           </div>
 
           <div style={{ background: 'white', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001 }}>
