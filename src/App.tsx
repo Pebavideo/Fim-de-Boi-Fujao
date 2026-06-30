@@ -12,6 +12,7 @@ const CadastroAnimais = lazy(() => import('./pages/CadastroAnimais'));
 const CompletarCadastro = lazy(() => import('./pages/CompletarCadastro'));
 const GestaoPastos = lazy(() => import('./pages/GestaoPastos.tsx'));
 const AnimalDetail = lazy(() => import('./pages/AnimalDetail.tsx'));
+const DetalhesAnimal = lazy(() => import('./pages/DetalhesAnimal.tsx'));
 const PrivacyPolicy = lazy(() => import('./privacy/PrivacyPolicy'));
 const TermsOfUse = lazy(() => import('./privacy/TermsOfUse'));
 const GestaoLotes = lazy(() => import('./pages/GestaoLotes'));
@@ -81,6 +82,10 @@ function App() {
             <Route 
               path="/animal/:id"
               element={user ? <AnimalDetail /> : <Navigate to="/login" replace />}
+            />
+            <Route 
+              path="/detalhes-animal/:id"
+              element={user ? <DetalhesAnimal /> : <Navigate to="/login" replace />}
             />
             <Route 
               path="/lote/:id"
