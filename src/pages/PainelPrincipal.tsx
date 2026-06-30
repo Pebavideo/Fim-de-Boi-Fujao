@@ -69,8 +69,12 @@ export default function PainelPrincipal() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
-      try {
-        if (user?.email) {
+      // Libera a interface IMEDIATAMENTE após confirmar autenticação
+      setCarregando(false);
+
+      if (user?.email) {
+        // Carrega dados do Firestore em SEGUNDO plano (não bloqueia a interface)
+        try {
           // Carregar dados do lojista
           const lojistaDocRef = doc(db, 'lojistas', user.email);
           const lojistaDocSnap = await getDoc(lojistaDocRef);
@@ -93,11 +97,9 @@ export default function PainelPrincipal() {
           })) as Item[];
           
           setItens(itensList);
+        } catch (error) {
+          console.error('Erro ao carregar dados do Firestore:', error);
         }
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-      } finally {
-        setCarregando(false);
       }
     });
 
