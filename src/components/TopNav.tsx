@@ -6,7 +6,8 @@ const navItems = [
   { label: 'Painel', path: '/painel-principal' },
   { label: 'Monitoramento', path: '/monitoramento' },
   { label: 'Cadastro', path: '/cadastro-animais' },
-  { label: 'Pastos', path: '/gestao-pastos' }
+  { label: 'Pastos', path: '/gestao-pastos' },
+  { label: 'Lotes', path: '/gestao-lotes' }
 ];
 
 export default function TopNav() {

@@ -9,6 +9,11 @@ interface AnimalData {
   [key: string]: any;
 }
 
+interface AnimalDetailProps {
+  animal?: AnimalData | null;
+  useLayout?: boolean;
+}
+
 function formatValue(value: any) {
   if (value === null || value === undefined) return 'Não disponível';
   if (typeof value === 'object' && value?.seconds) {
@@ -18,13 +23,19 @@ function formatValue(value: any) {
   return String(value);
 }
 
-export default function AnimalDetail() {
+export default function AnimalDetail({ animal: propAnimal, useLayout = true }: AnimalDetailProps) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [animal, setAnimal] = useState<AnimalData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (propAnimal) {
+      setAnimal(propAnimal);
+      setLoading(false);
+      return;
+    }
+
     const loadAnimal = async () => {
       const user = auth.currentUser;
       if (!user?.email || !id) {
@@ -49,7 +60,7 @@ export default function AnimalDetail() {
     };
 
     loadAnimal();
-  }, [id]);
+  }, [id, propAnimal]);
 
   const handlePrint = () => {
     window.print();
@@ -69,8 +80,8 @@ export default function AnimalDetail() {
     'historicoSaude'
   ];
 
-  return (
-    <LayoutPadrao>
+  const content = (
+    <>
       <style>{`
         @media print {
           body * {
@@ -100,20 +111,22 @@ export default function AnimalDetail() {
         }
       `}</style>
 
-      <div className="no-print" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-        <div>
-          <h2>Ficha do Animal</h2>
-          <p style={{ color: '#666', marginTop: '6px' }}>Confira a rastreabilidade e gere a ficha oficial para impressão.</p>
+      {!propAnimal && (
+        <div className="no-print" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <h2>Ficha do Animal</h2>
+            <p style={{ color: '#666', marginTop: '6px' }}>Confira a rastreabilidade e gere a ficha oficial para impressão.</p>
+          </div>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <Button onClick={() => navigate('/monitoramento')} className="btn-responsivo" style={{ background: '#9e9e9e', color: 'white', border: 'none', padding: '12px 18px', borderRadius: '10px' }}>
+              Voltar
+            </Button>
+            <Button onClick={handlePrint} className="btn-responsivo" style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '12px 18px', borderRadius: '10px' }}>
+              Gerar Ficha Oficial
+            </Button>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <Button onClick={() => navigate('/monitoramento')} style={{ background: '#9e9e9e', color: 'white', border: 'none', padding: '12px 18px', borderRadius: '10px' }}>
-            Voltar
-          </Button>
-          <Button onClick={handlePrint} style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '12px 18px', borderRadius: '10px' }}>
-            Gerar Ficha Oficial
-          </Button>
-        </div>
-      </div>
+      )}
 
       {loading ? (
         <p>Carregando dados do animal...</p>
@@ -134,7 +147,7 @@ export default function AnimalDetail() {
               </div>
             </div>
 
-            <div style={{ background: 'white', borderRadius: '18px', border: '1px solid #e0e0e0', overflow: 'hidden', minHeight: '280px' }}>
+            <div style={{ background: 'white', borderRadius: '15px', border: '1px solid #dce4f5', overflow: 'hidden', minHeight: '280px' }}>
               <img
                 src={animal.foto || 'https://via.placeholder.com/640x480?text=Sem+Foto'}
                 alt={animal.idBrinco || 'Imagem do animal'}
@@ -144,12 +157,12 @@ export default function AnimalDetail() {
           </div>
 
           <div style={{ display: 'grid', gap: '20px' }}>
-            <div style={{ background: 'white', borderRadius: '18px', border: '1px solid #e0e0e0', padding: '20px' }}>
+            <div style={{ background: 'white', borderRadius: '15px', border: '1px solid #dce4f5', padding: '20px' }}>
               <h3 style={{ marginTop: 0 }}>Histórico de Saúde</h3>
               {Array.isArray(animal.historicoSaude) && animal.historicoSaude.length > 0 ? (
                 <div style={{ display: 'grid', gap: '12px' }}>
                   {animal.historicoSaude.map((item: any, index: number) => (
-                    <div key={item.id || index} style={{ padding: '14px', background: '#f8f9ff', borderRadius: '14px', border: '1px solid #dde2f0' }}>
+                    <div key={item.id || index} style={{ padding: '14px', background: '#f0f4ff', borderRadius: '15px', border: '1px solid #dce4f5' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
                         <strong style={{ color: '#1a73e8' }}>{item.tipo || 'Item'}</strong>
                         <span style={{ color: '#555' }}>{formatValue(item.data)}</span>
@@ -163,9 +176,9 @@ export default function AnimalDetail() {
               )}
             </div>
 
-            <div style={{ background: 'white', borderRadius: '18px', border: '1px solid #e0e0e0', padding: '20px' }}>
+            <div style={{ background: 'white', borderRadius: '15px', border: '1px solid #dce4f5', padding: '20px' }}>
               <h3 style={{ marginTop: 0 }}>Assinatura do Veterinário</h3>
-              <div style={{ minHeight: '140px', border: '1px dashed #c3c4cc', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ minHeight: '140px', border: '1px dashed #c3c4cc', borderRadius: '15px', padding: '18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
                   <p style={{ margin: 0, color: '#555' }}>Nome / CRM:</p>
                   <p style={{ margin: '8px 0 0 0', color: '#222', fontWeight: 'bold' }}>______________________________________</p>
@@ -177,7 +190,7 @@ export default function AnimalDetail() {
               </div>
             </div>
 
-            <div style={{ background: 'white', borderRadius: '18px', border: '1px solid #e0e0e0', padding: '20px' }}>
+            <div style={{ background: 'white', borderRadius: '15px', border: '1px solid #dce4f5', padding: '20px' }}>
               <h3 style={{ marginTop: 0 }}>Informações adicionais</h3>
               <div style={{ display: 'grid', gap: '10px' }}>
                 {Object.keys(animal).filter((field) => !knownFields.includes(field) && field !== 'emailDono' && field !== 'id').map((field) => (
@@ -191,6 +204,8 @@ export default function AnimalDetail() {
           </div>
         </div>
       )}
-    </LayoutPadrao>
+    </>
   );
+
+  return useLayout ? <LayoutPadrao>{content}</LayoutPadrao> : content;
 }

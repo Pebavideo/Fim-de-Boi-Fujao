@@ -6,6 +6,12 @@ import { logoutSeguro } from '../utils/auth';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import LayoutPadrao from '../components/LayoutPadrao';
+import AnimalDetail from './AnimalDetail';
+
+interface AnimalData {
+  id: string;
+  [key: string]: any;
+}
 
 interface Item {
   id: string;
@@ -19,6 +25,9 @@ export default function PainelPrincipal() {
   const [totalItens, setTotalItens] = useState(0);
   const [totalValor, setTotalValor] = useState(0);
   const [busca, setBusca] = useState('');
+  const [numeroChipConsulta, setNumeroChipConsulta] = useState('');
+  const [animalBuscado, setAnimalBuscado] = useState<AnimalData | null>(null);
+  const [buscaChipCarregando, setBuscaChipCarregando] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [modalCadastroAberto, setModalCadastroAberto] = useState(false);
   const [numeroChip, setNumeroChip] = useState('');
@@ -121,6 +130,37 @@ export default function PainelPrincipal() {
     }
   };
 
+  const handleBuscarPorChip = async () => {
+    const chip = numeroChipConsulta.trim();
+    if (!chip) {
+      alert('Digite o número do chip para consultar.');
+      return;
+    }
+
+    setBuscaChipCarregando(true);
+    try {
+      const animaisRef = collection(db, 'animais');
+      let animaisSnap = await getDocs(query(animaisRef, where('numero_chip', '==', chip)));
+      if (animaisSnap.empty) {
+        animaisSnap = await getDocs(query(animaisRef, where('numeroChip', '==', chip)));
+      }
+
+      if (animaisSnap.empty) {
+        setAnimalBuscado(null);
+        alert('Animal não encontrado');
+        return;
+      }
+
+      const animalDoc = animaisSnap.docs[0];
+      setAnimalBuscado({ id: animalDoc.id, ...animalDoc.data() } as AnimalData);
+    } catch (error) {
+      console.error('Erro ao buscar animal por chip:', error);
+      alert('Erro ao buscar animal.');
+    } finally {
+      setBuscaChipCarregando(false);
+    }
+  };
+
   const itensFiltrados = itens.filter(item => 
     item.nome.toLowerCase().includes(busca.toLowerCase())
   );
@@ -167,6 +207,37 @@ export default function PainelPrincipal() {
               Novo Chip
             </Button>
           </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'end', marginBottom: '20px' }}>
+            <Input
+              type="text"
+              placeholder="Consultar por Chip"
+              className="campo"
+              value={numeroChipConsulta}
+              onChange={(e) => setNumeroChipConsulta(e.target.value)}
+              style={{ width: '100%' }}
+            />
+            <Button
+              onClick={handleBuscarPorChip}
+              className="btn-responsivo"
+              disabled={buscaChipCarregando}
+              style={{ background: '#1976d2', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '8px', fontWeight: 'bold', minWidth: '140px' }}
+            >
+              {buscaChipCarregando ? 'Buscando...' : 'Buscar'}
+            </Button>
+          </div>
+
+          {animalBuscado && (
+            <div style={{ background: 'white', borderRadius: '15px', border: '1px solid #dce4f5', padding: '20px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '18px' }}>
+                <h3 style={{ margin: 0 }}>Resultado da Busca</h3>
+                <Button onClick={() => setAnimalBuscado(null)} style={{ background: '#9e9e9e', color: 'white', border: 'none', padding: '10px 18px', borderRadius: '10px' }}>
+                  Fechar
+                </Button>
+              </div>
+              <AnimalDetail animal={animalBuscado} useLayout={false} />
+            </div>
+          )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px', marginBottom: '20px' }}>
             <div style={{ background: '#f0f4ff', padding: '15px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001 }}>

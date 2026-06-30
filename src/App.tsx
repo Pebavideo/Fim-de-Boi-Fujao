@@ -14,6 +14,8 @@ const GestaoPastos = lazy(() => import('./pages/GestaoPastos.tsx'));
 const AnimalDetail = lazy(() => import('./pages/AnimalDetail.tsx'));
 const PrivacyPolicy = lazy(() => import('./privacy/PrivacyPolicy'));
 const TermsOfUse = lazy(() => import('./privacy/TermsOfUse'));
+const GestaoLotes = lazy(() => import('./pages/GestaoLotes'));
+const LoteDetail = lazy(() => import('./pages/LoteDetail'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -79,6 +81,14 @@ function App() {
             <Route 
               path="/animal/:id"
               element={user ? <AnimalDetail /> : <Navigate to="/login" replace />}
+            />
+            <Route 
+              path="/lote/:id"
+              element={user ? <LoteDetail /> : <Navigate to="/login" replace />}
+            />
+            <Route 
+              path="/gestao-lotes"
+              element={user ? <GestaoLotes /> : <Navigate to="/login" replace />}
             />
             <Route 
               path="/completar-cadastro" 
