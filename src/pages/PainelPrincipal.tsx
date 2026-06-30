@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { auth, db } from '../firebase/config';
 import { collection, getDocs, addDoc, query, where, doc, getDoc } from 'firebase/firestore';
 import { logoutSeguro } from '../utils/auth';
@@ -239,7 +239,7 @@ export default function PainelPrincipal() {
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px', marginBottom: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px', marginBottom: '20px' }}>
             <div style={{ background: '#f0f4ff', padding: '15px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001 }}>
               <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#666' }}>Total de Itens</h3>
               <p style={{ fontSize: '28px', fontWeight: 'bold', margin: 0, color: '#1a73e8' }}>{totalItens || 0}</p>
@@ -252,6 +252,43 @@ export default function PainelPrincipal() {
               <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#666' }}>Última Atualização</h3>
               <p style={{ fontSize: '16px', fontWeight: 'bold', margin: 0, color: '#333' }}>{new Date().toLocaleDateString('pt-BR')}</p>
             </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px', marginBottom: '20px' }}>
+            <Link to="/monitoramento" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001, transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                <h3 style={{ margin: '0 0 10px 0', color: '#1a73e8' }}>📊 Monitoramento</h3>
+                <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Acompanhe os animais e pastagens</p>
+              </div>
+            </Link>
+            
+            <Link to="/cadastro-animais" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001, transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                <h3 style={{ margin: '0 0 10px 0', color: '#25d366' }}>🐮 Cadastro</h3>
+                <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Adicione novos animais</p>
+              </div>
+            </Link>
+            
+            <Link to="/gestao-pastos" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001, transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                <h3 style={{ margin: '0 0 10px 0', color: '#ff9800' }}>🌾 Gestão de Pastos</h3>
+                <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Gerencie suas áreas de pastagem</p>
+              </div>
+            </Link>
+            
+            <Link to="/gestao-lotes" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001, transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                <h3 style={{ margin: '0 0 10px 0', color: '#9c27b0' }}>📦 Gestão de Lotes</h3>
+                <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Organize animais em lotes</p>
+              </div>
+            </Link>
+            
+            <Link to="/completar-cadastro" style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001, transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                <h3 style={{ margin: '0 0 10px 0', color: '#607d8b' }}>👤 Meus Dados</h3>
+                <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Atualize seu cadastro</p>
+              </div>
+            </Link>
           </div>
 
           <div style={{ background: 'white', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001 }}>
