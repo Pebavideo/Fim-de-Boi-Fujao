@@ -12,11 +12,11 @@ const CadastroAnimais = lazy(() => import('./pages/CadastroAnimais'));
 const CompletarCadastro = lazy(() => import('./pages/CompletarCadastro'));
 const GestaoPastos = lazy(() => import('./pages/GestaoPastos.tsx'));
 const AnimalDetail = lazy(() => import('./pages/AnimalDetail.tsx'));
-const DetalhesAnimal = lazy(() => import('./pages/DetalhesAnimal.tsx'));
 const PrivacyPolicy = lazy(() => import('./privacy/PrivacyPolicy'));
 const TermsOfUse = lazy(() => import('./privacy/TermsOfUse'));
 const GestaoLotes = lazy(() => import('./pages/GestaoLotes'));
 const LoteDetail = lazy(() => import('./pages/LoteDetail'));
+const MapaMonitoramento = lazy(() => import('./pages/MapaMonitoramento'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -84,16 +84,16 @@ function App() {
               element={user ? <AnimalDetail /> : <Navigate to="/login" replace />}
             />
             <Route 
-              path="/detalhes-animal/:id"
-              element={user ? <DetalhesAnimal /> : <Navigate to="/login" replace />}
-            />
-            <Route 
               path="/lote/:id"
               element={user ? <LoteDetail /> : <Navigate to="/login" replace />}
             />
             <Route 
               path="/gestao-lotes"
               element={user ? <GestaoLotes /> : <Navigate to="/login" replace />}
+            />
+            <Route 
+              path="/mapa-monitoramento"
+              element={user ? <MapaMonitoramento /> : <Navigate to="/login" replace />}
             />
             <Route 
               path="/completar-cadastro" 

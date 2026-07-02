@@ -1,64 +1,115 @@
-import { useState, ChangeEvent } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase/config';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, doc, updateDoc } from 'firebase/firestore';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import LayoutPadrao from '../components/LayoutPadrao';
 
-interface HistoricoSaude {
-  id: string;
-  tipo: string;
-  descricao: string;
-  data: string;
-}
+const AutoResizeTextarea = ({
+  value,
+  onChange,
+  placeholder,
+  label,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  placeholder?: string;
+  label: string;
+}) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-const MAX_IMAGE_SIZE = 1048487; // ~1MB
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 300)}px`;
+    }
+  }, [value]);
 
-const compressImage = (file: File): Promise<File> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (e) => {
-      const img = new Image();
-      img.src = e.target?.result as string;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let { width, height } = img;
-        const maxDim = 1024;
-        
-        if (width > maxDim || height > maxDim) {
-          if (width > height) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-        
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
-              resolve(compressedFile);
-            } else {
-              reject(new Error('Erro ao compactar imagem'));
-            }
-          },
-          'image/jpeg',
-          0.7
-        );
-      };
-      img.onerror = (error) => reject(error);
-    };
-    reader.onerror = (error) => reject(error);
-  });
+  return (
+    <div>
+      <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>
+        {label}
+      </label>
+      <textarea
+        ref={textareaRef}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        style={{
+          width: '100%',
+          padding: '10px 12px',
+          border: '1px solid #dce4f5',
+          borderRadius: '8px',
+          fontSize: '14px',
+          resize: 'none',
+          fontFamily: 'inherit',
+          lineHeight: '1.5',
+        }}
+      />
+    </div>
+  );
+};
+
+const ResumoCadastro = ({
+  nomeFazenda,
+  idBrinco,
+  categoria,
+  lote,
+  qtdCabecas,
+  pesoPorCabeca,
+  pesoTotalFormatado,
+  totalArrobasFormatado,
+  vacinasMedicamentos,
+}: any) => {
+  return (
+    <div style={{ background: '#f9f9f9', borderRadius: '8px', padding: '15px', border: '1px solid #dce4f5' }}>
+      <h3 style={{ margin: '0 0 15px 0', fontSize: '18px', color: '#1a73e8' }}>Resumo do Cadastro</h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {nomeFazenda && (
+          <div style={{ fontSize: '14px' }}>
+            <strong>Fazenda:</strong> {nomeFazenda}
+          </div>
+        )}
+        {idBrinco && (
+          <div style={{ fontSize: '14px' }}>
+            <strong>ID/Brinco:</strong> {idBrinco}
+          </div>
+        )}
+        {categoria && (
+          <div style={{ fontSize: '14px' }}>
+            <strong>Categoria:</strong> {categoria}
+          </div>
+        )}
+        {lote && (
+          <div style={{ fontSize: '14px' }}>
+            <strong>Lote:</strong> {lote}
+          </div>
+        )}
+        {qtdCabecas > 0 && (
+          <div style={{ fontSize: '14px' }}>
+            <strong>Quantidade de Cabeças:</strong> {qtdCabecas}
+          </div>
+        )}
+        {pesoPorCabeca > 0 && (
+          <div style={{ fontSize: '14px' }}>
+            <strong>Peso Médio:</strong> {pesoPorCabeca} kg/cabeça
+          </div>
+        )}
+        <div style={{ fontSize: '14px' }}>
+          <strong>Peso Total:</strong> {pesoTotalFormatado} kg
+        </div>
+        <div style={{ fontSize: '14px' }}>
+          <strong>Total em Arrobas:</strong> {totalArrobasFormatado} @
+        </div>
+        {vacinasMedicamentos && (
+          <div style={{ fontSize: '14px' }}>
+            <strong>Vacinas/Medicamentos:</strong> {vacinasMedicamentos}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default function CadastroAnimais() {
@@ -66,38 +117,55 @@ export default function CadastroAnimais() {
 
   const [idBrinco, setIdBrinco] = useState('');
   const [categoria, setCategoria] = useState('');
-  const [peso, setPeso] = useState('');
-  const [status, setStatus] = useState('');
+  const [vacinasMedicamentos, setVacinasMedicamentos] = useState('');
   const [origem, setOrigem] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
   const [pastoAutorizado, setPastoAutorizado] = useState('');
-  const [foto, setFoto] = useState<File | null>(null);
-  const [fotoPreview, setFotoPreview] = useState('');
   const [carregando, setCarregando] = useState(false);
-  const [historicoSaude, setHistoricoSaude] = useState<HistoricoSaude[]>([]);
-  const [modalHistoricoAberto, setModalHistoricoAberto] = useState(false);
-  const [historicoTipo, setHistoricoTipo] = useState('Vacina');
-  const [historicoData, setHistoricoData] = useState('');
-  const [historicoDescricao, setHistoricoDescricao] = useState('');
+  const [nomeFazenda, setNomeFazenda] = useState('');
+  const [lote, setLote] = useState('');
+  const [qtdCabecas, setQtdCabecas] = useState(0);
+  const [pesoPorCabeca, setPesoPorCabeca] = useState(0);
+  const [observacoes, setObservacoes] = useState('');
+  const [celularAlertas, setCelularAlertas] = useState(''); // Novo estado para celular de alertas
 
-  const handleFotoChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => setFotoPreview(reader.result as string);
-      reader.readAsDataURL(file);
-      
-      let compressedFile = file;
-      if (file.size > MAX_IMAGE_SIZE) {
-        compressedFile = await compressImage(file);
-      }
-      setFoto(compressedFile);
+  const pesoTotal = qtdCabecas * pesoPorCabeca;
+  const pesoTotalFormatado = pesoTotal.toLocaleString('pt-BR');
+  const totalArrobas = pesoTotal / 15;
+  const totalArrobasFormatado = totalArrobas.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+
+  const formatPhoneNumber = (value: string) => {
+    if (!value) return "";
+    value = value.replace(/\D/g, "");
+    if (value.length > 11) value = value.slice(0, 11);
+
+    if (value.length <= 2) {
+      return `(${value}`;
+    } else if (value.length <= 7) {
+      return `(${value.slice(0, 2)}) ${value.slice(2)}`;
+    } else {
+      return `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7, 11)}`;
     }
   };
 
+  const handleLimpar = () => {
+    setIdBrinco('');
+    setCategoria('');
+    setVacinasMedicamentos('');
+    setOrigem('');
+    setDataNascimento('');
+    setPastoAutorizado('');
+    setNomeFazenda('');
+    setLote('');
+    setQtdCabecas(0);
+    setPesoPorCabeca(0);
+    setObservacoes('');
+    setCelularAlertas(''); // Limpar também o celular de alertas
+  };
+
   const handleSalvar = async () => {
-    if (!idBrinco.trim() || !categoria.trim() || !peso.trim() || !status.trim() || !pastoAutorizado.trim() || !foto) {
-      alert('Preencha todos os campos e adicione uma foto!');
+    if (!idBrinco.trim() || !categoria.trim() || !pastoAutorizado.trim() || !lote.trim()) {
+      alert('Preencha todos os campos obrigatórios!');
       return;
     }
 
@@ -109,53 +177,54 @@ export default function CadastroAnimais() {
 
     setCarregando(true);
     try {
-      // Convertendo foto para base64 para salvar no Firestore (simples para exemplo)
-      const reader = new FileReader();
-      reader.readAsDataURL(foto);
-      reader.onloadend = async () => {
-        const fotoBase64 = reader.result as string;
-        
-        await addDoc(collection(db, 'animais'), {
-          idBrinco,
-          categoria,
-          peso: parseFloat(peso),
-          status,
-          origem: origem || null,
-          dataNascimento: dataNascimento || null,
-          pastoAutorizado,
-          pastoAtual: pastoAutorizado,
-          foto: fotoBase64,
-          historicoSaude: historicoSaude,
-          dataCadastro: new Date(),
-          emailDono: user.email
-        });
+      const animaisRef = collection(db, 'animais');
+      const q = query(
+        animaisRef,
+        where('emailDono', '==', user.email),
+        where('idBrinco', '==', idBrinco.trim())
+      );
+      const snapshot = await getDocs(q);
 
-        // Adiciona pasto único ao Firestore para o lojista
-        const pastoNome = pastoAutorizado.trim();
-        if (pastoNome) {
-          const pastosRef = collection(db, 'pastos_do_usuario');
-          const pastosSnap = await getDocs(query(pastosRef, where('emailDono', '==', user.email)));
-          const existePasto = pastosSnap.docs.some((docSnap) => {
-            const data = docSnap.data();
-            return typeof data.nome === 'string' && data.nome.trim().toLowerCase() === pastoNome.toLowerCase();
-          });
-
-          if (!existePasto) {
-            await addDoc(pastosRef, {
-              nome: pastoNome,
-              emailDono: user.email,
-              uidDono: user.uid,
-              criadoEm: new Date()
-            });
-          }
-        }
-        
-        alert('Animal cadastrado com sucesso!');
-        navigate(-1);
+      const dados = {
+        idBrinco,
+        categoria,
+        peso: pesoTotal,
+        vacinasMedicamentos,
+        origem: origem || null,
+        dataNascimento: dataNascimento || null,
+        pastoAutorizado,
+        pastoAtual: pastoAutorizado,
+        historicoSaude: [],
+        historicoManejo: [],
+        dataCadastro: new Date(),
+        emailDono: user.email,
+        lote,
+        qtdCabecas,
+        pesoPorCabeca,
+        nomeFazenda: nomeFazenda || null,
+        observacoes: observacoes || null,
+        celularAlertas: celularAlertas.replace(/\D/g, ''), // Salvar apenas números
+        dataAtualizacao: new Date(),
       };
+
+      if (!snapshot.empty) {
+        const docRef = doc(db, 'animais', snapshot.docs[0].id);
+        const currentData = snapshot.docs[0].data();
+        await updateDoc(docRef, {
+          ...dados,
+          historicoSaude: currentData.historicoSaude || [],
+          historicoManejo: currentData.historicoManejo || []
+        });
+        alert('Cadastro atualizado com sucesso!');
+      } else {
+        await addDoc(collection(db, 'animais'), dados);
+        alert('Animal cadastrado com sucesso!');
+      }
+
+      navigate('/monitoramento');
     } catch (error) {
       console.error('Erro ao salvar:', error);
-      alert('Erro ao salvar cadastro!');
+      alert('Erro ao salvar!');
     } finally {
       setCarregando(false);
     }
@@ -164,165 +233,187 @@ export default function CadastroAnimais() {
   return (
     <LayoutPadrao>
       <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid #eee', zIndex: 100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', zIndex: 100 }}>
-          <Button onClick={() => navigate(-1)} className="btn-responsivo" style={{ background: '#9e9e9e', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', zIndex: 100 }}>
-            Voltar
-          </Button>
+        <div>
           <h2 style={{ margin: 0 }}>Cadastro de Animais</h2>
+          <p style={{ margin: 0, color: '#666', fontSize: '16px' }}>Adicione um novo animal ou atualize um cadastro existente</p>
         </div>
-        <div></div>
+        <Button onClick={() => navigate('/painel-principal')} className="btn-responsivo" style={{ fontSize: '12px', color: 'white', background: '#6c757d', border: 'none', padding: '8px 16px', borderRadius: '8px', zIndex: 100 }}>
+          Voltar
+        </Button>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <div>
-          <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>ID/Brinco</label>
-          <Input type="text" placeholder="Número do brinco" value={idBrinco} onChange={(e) => setIdBrinco(e.target.value)} className="campo" />
-        </div>
-
-        <div>
-          <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Categoria</label>
-          <Input type="text" placeholder="Ex: Bovino, Suíno" value={categoria} onChange={(e) => setCategoria(e.target.value)} className="campo" />
-        </div>
-
-        <div>
-          <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Peso (kg)</label>
-          <Input type="number" step="0.01" placeholder="Peso em kg" value={peso} onChange={(e) => setPeso(e.target.value)} className="campo" />
-        </div>
-
-        <div>
-          <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Status</label>
-          <Input type="text" placeholder="Ex: Saudável, Em tratamento" value={status} onChange={(e) => setStatus(e.target.value)} className="campo" />
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-          <div>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Origem</label>
-            <select
-              value={origem}
-              onChange={(e) => setOrigem(e.target.value)}
-              className="campo"
-              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #d8d8d8', background: 'white' }}
-            >
-              <option value="">Selecione</option>
-              <option value="Própria">Própria</option>
-              <option value="Compra">Compra</option>
-            </select>
-          </div>
-          <div>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Data de Nascimento</label>
-            <Input type="date" value={dataNascimento} onChange={(e) => setDataNascimento(e.target.value)} className="campo" />
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <Button
-            type="button"
-            onClick={() => setModalHistoricoAberto(true)}
-            className="btn-responsivo"
-            style={{ background: '#ffa726', color: 'white', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: 'bold', width: 'fit-content' }}
-          >
-            + Adicionar Histórico de Saúde
-          </Button>
-          {historicoSaude.length > 0 && (
-            <div style={{ background: '#f7f7f7', padding: '15px', borderRadius: '12px', border: '1px solid #e0e0e0' }}>
-              <h3 style={{ margin: '0 0 10px 0' }}>Histórico de Saúde</h3>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                {historicoSaude.map((item) => (
-                  <li key={item.id} style={{ marginBottom: '10px', padding: '10px', background: 'white', borderRadius: '10px', border: '1px solid #e0e0e0' }}>
-                    <strong>{item.tipo}</strong> - {item.data}
-                    <p style={{ margin: '8px 0 0 0', color: '#555' }}>{item.descricao}</p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-
-        <div>
-          <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Pasto Autorizado</label>
+      <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5' }}>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Nome da Fazenda</label>
           <Input
             type="text"
-            placeholder="Digite o nome do pasto autorizado"
-            value={pastoAutorizado}
-            onChange={(e) => setPastoAutorizado(e.target.value)}
+            placeholder="Nome da fazenda ou propriedade"
+            value={nomeFazenda}
+            onChange={(e) => setNomeFazenda(e.target.value)}
             className="campo"
           />
         </div>
 
-        <div>
-          <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Foto do Animal</label>
-          <input type="file" accept="image/*" hidden id="fotoInput" onChange={handleFotoChange} />
-          <label htmlFor="fotoInput" style={{ display: 'block', background: '#f0f4ff', padding: '20px', borderRadius: '10px', border: '2px dashed #1a73e8', textAlign: 'center', cursor: 'pointer', zIndex: 1001 }}>
-            {fotoPreview ? <img src={fotoPreview} alt="Preview" style={{ maxHeight: '150px', borderRadius: '10px' }} /> : <span style={{ color: '#666' }}>Clique para selecionar uma foto</span>}
-          </label>
-        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px', marginBottom: '20px' }}>
+          <div>
+            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Identificação do Brinco (Obrigatório)</label>
+            <Input
+              type="text"
+              placeholder="Número do brinco"
+              value={idBrinco}
+              onChange={(e) => setIdBrinco(e.target.value)}
+              className="campo"
+            />
+          </div>
 
-        <Button onClick={handleSalvar} disabled={carregando} className="btn-responsivo" style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '15px', borderRadius: '10px', fontSize: '16px', fontWeight: 'bold', marginTop: '10px' }}>
-          {carregando ? 'Salvando...' : 'Salvar'}
-        </Button>
-      </div>
+          <div>
+            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Categoria</label>
+            <Input
+              type="text"
+              placeholder="Boi, Vaca, Bezerro..."
+              value={categoria}
+              onChange={(e) => setCategoria(e.target.value)}
+              className="campo"
+            />
+          </div>
 
-      {modalHistoricoAberto && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000 }}>
-          <div style={{ width: 'min(560px, 95%)', background: 'white', borderRadius: '18px', padding: '25px', boxShadow: '0 20px 40px rgba(0,0,0,0.16)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <div>
-                <h3 style={{ margin: 0 }}>Novo item de histórico</h3>
-                <p style={{ margin: '8px 0 0 0', color: '#666' }}>Registre vacinas ou vitaminas para o animal.</p>
-              </div>
-              <Button onClick={() => setModalHistoricoAberto(false)} style={{ background: '#e0e0e0', color: '#333', border: 'none', padding: '10px 14px', borderRadius: '10px' }}>Fechar</Button>
-            </div>
+          <div>
+            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Origem (opcional)</label>
+            <Input
+              type="text"
+              placeholder="Compra, Nascimento na propriedade..."
+              value={origem}
+              onChange={(e) => setOrigem(e.target.value)}
+              className="campo"
+            />
+          </div>
 
-            <div style={{ display: 'grid', gap: '15px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', color: '#666', marginBottom: '6px' }}>Tipo</label>
-                <select value={historicoTipo} onChange={(e) => setHistoricoTipo(e.target.value)} className="campo" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #d8d8d8', background: 'white' }}>
-                  <option value="Vacina">Vacina</option>
-                  <option value="Vitamina">Vitamina</option>
-                  <option value="Outro">Outro</option>
-                </select>
-              </div>
+          <div>
+            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Data de Nascimento (opcional)</label>
+            <Input
+              type="date"
+              value={dataNascimento}
+              onChange={(e) => setDataNascimento(e.target.value)}
+              className="campo"
+            />
+          </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', color: '#666', marginBottom: '6px' }}>Data</label>
-                <Input type="date" value={historicoData} onChange={(e) => setHistoricoData(e.target.value)} className="campo" />
-              </div>
+          <div>
+            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Pasto Autorizado</label>
+            <Input
+              type="text"
+              placeholder="Digite o nome do pasto autorizado"
+              value={pastoAutorizado}
+              onChange={(e) => setPastoAutorizado(e.target.value)}
+              className="campo"
+            />
+          </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', color: '#666', marginBottom: '6px' }}>Descrição</label>
-                <textarea value={historicoDescricao} onChange={(e) => setHistoricoDescricao(e.target.value)} className="campo" style={{ minHeight: '100px', resize: 'vertical' }} placeholder="Vacina X aplicada, vitamina Y administrada, observações..." />
-              </div>
+          <div>
+            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Lote</label>
+            <Input
+              type="text"
+              placeholder="Nome do lote"
+              value={lote}
+              onChange={(e) => setLote(e.target.value)}
+              className="campo"
+            />
+          </div>
 
-              <Button
-                onClick={() => {
-                  if (!historicoData || !historicoDescricao.trim()) {
-                    alert('Preencha a data e a descrição do histórico.');
-                    return;
-                  }
+          <div>
+            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Quantidade de Cabeças</label>
+            <Input
+              type="number"
+              placeholder="Quantidade"
+              value={qtdCabecas}
+              onChange={(e) => setQtdCabecas(parseFloat(e.target.value) || 0)}
+              className="campo"
+            />
+          </div>
 
-                  setHistoricoSaude((prev) => [
-                    ...prev,
-                    {
-                      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`,
-                      tipo: historicoTipo,
-                      data: historicoData,
-                      descricao: historicoDescricao.trim()
-                    }
-                  ]);
-                  setHistoricoTipo('Vacina');
-                  setHistoricoData('');
-                  setHistoricoDescricao('');
-                  setModalHistoricoAberto(false);
-                }}
-                className="btn-responsivo"
-                style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: 'bold' }}
-              >
-                Salvar item de histórico
-              </Button>
-            </div>
+          <div>
+            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Peso Médio por Cabeça (kg)</label>
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="Peso médio em kg"
+              value={pesoPorCabeca}
+              onChange={(e) => setPesoPorCabeca(parseFloat(e.target.value) || 0)}
+              className="campo"
+            />
+          </div>
+
+          <div>
+            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Celular para Alertas (WhatsApp)</label>
+            <Input
+              type="tel"
+              placeholder="(00) 00000-0000"
+              value={formatPhoneNumber(celularAlertas)}
+              onChange={(e) => setCelularAlertas(e.target.value)}
+              className="campo"
+            />
           </div>
         </div>
-      )}
+
+        <AutoResizeTextarea
+          label="Vacinas/Medicamentos"
+          placeholder="Lista de vacinas ou medicamentos aplicados..."
+          value={vacinasMedicamentos}
+          onChange={setVacinasMedicamentos}
+        />
+
+        <div style={{ marginTop: '20px' }}>
+          <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Observações</label>
+          <textarea
+            value={observacoes}
+            onChange={(e) => setObservacoes(e.target.value)}
+            placeholder="Observações adicionais sobre o animal..."
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              border: '1px solid #dce4f5',
+              borderRadius: '8px',
+              fontSize: '14px',
+              resize: 'none',
+              fontFamily: 'inherit',
+              lineHeight: '1.5',
+              minHeight: '80px',
+            }}
+          />
+        </div>
+
+        <div style={{ padding: '10px', background: '#e8f0fe', borderRadius: '8px', fontWeight: 'bold', marginBottom: '10px', marginTop: '20px' }}>
+          Peso Total do Lote: {pesoTotalFormatado} kg
+        </div>
+
+        <div style={{ padding: '10px', background: '#e8f0fe', borderRadius: '8px', fontWeight: 'bold', marginBottom: '20px' }}>
+          Total em Arrobas: {totalArrobasFormatado} @
+        </div>
+
+        <ResumoCadastro
+          nomeFazenda={nomeFazenda}
+          idBrinco={idBrinco}
+          categoria={categoria}
+          lote={lote}
+          qtdCabecas={qtdCabecas}
+          pesoPorCabeca={pesoPorCabeca}
+          pesoTotalFormatado={pesoTotalFormatado}
+          totalArrobasFormatado={totalArrobasFormatado}
+          vacinasMedicamentos={vacinasMedicamentos}
+        />
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+          <Button onClick={handleLimpar} className="btn-responsivo" style={{ background: '#ff9800', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '10px', zIndex: 100 }}>
+            Limpar
+          </Button>
+          <Button onClick={() => { handleLimpar(); navigate('/painel-principal'); }} className="btn-responsivo" style={{ background: '#6c757d', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '10px', zIndex: 100 }}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSalvar} className="btn-responsivo" disabled={carregando} style={{ background: carregando ? '#999' : '#2196F3', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '10px', zIndex: 100 }}>
+            {carregando ? 'Salvando...' : 'Salvar'}
+          </Button>
+        </div>
+      </div>
     </LayoutPadrao>
   );
 }

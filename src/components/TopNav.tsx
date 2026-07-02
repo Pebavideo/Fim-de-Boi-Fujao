@@ -9,8 +9,7 @@ const navItems = [
   { label: 'Pastos', path: '/gestao-pastos' },
   { label: 'Lotes', path: '/gestao-lotes' },
   { label: 'Completar Cadastro', path: '/completar-cadastro' },
-  { label: 'Detalhes Animal', path: '/detalhes-animal/1' },
-  { label: 'Animal Detail', path: '/animal/1' },
+  { label: 'Consulta Precisão', path: '/animal/1' },
   { label: 'Lote Detail', path: '/lote/1' }
 ];
 
