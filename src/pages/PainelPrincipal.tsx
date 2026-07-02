@@ -36,13 +36,13 @@ export default function PainelPrincipal() {
   const getSaudacaoCompleta = () => {
     const hora = new Date().getHours();
     const nome = dadosLojista?.nome || 'lojista';
-    
+
     if (hora >= 5 && hora < 12) {
-      return `Bom dia, ${nome}! Hum, estou sentindo o cheirinho de café...`;
+      return `Bom dia, ${nome}! Um cheirinho de café passando...`;
     } else if (hora >= 12 && hora < 18) {
-      return `Boa tarde, ${nome}!`;
+      return `Boa tarde, ${nome}! Um cheirinho de café passando...`;
     } else {
-      return `Boa noite, ${nome}!`;
+      return `Boa noite, ${nome}! Um cheirinho de café passando...`;
     }
   };
 
@@ -99,10 +99,10 @@ export default function PainelPrincipal() {
     <LayoutPadrao>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid #eee', zIndex: 100 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <img src="/assets/avatar-boi.svg" alt="Boi Fujão" style={{ width: '60px', height: '60px' }} />
+          <img src="/assets/logo192.png" alt="Boi Fujão" style={{ width: '60px', height: '60px' }} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <h2 style={{ margin: 0 }}>Painel Principal</h2>
-            <p style={{ margin: 0, color: '#666', fontSize: '16px' }}>
+            <p style={{ margin: 0, color: '#444', fontSize: '17px', fontWeight: 600, lineHeight: 1.4 }}>
               {getSaudacaoCompleta()}
             </p>
           </div>

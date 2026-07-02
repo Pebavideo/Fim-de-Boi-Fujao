@@ -70,6 +70,7 @@ export default function LoteDetail() {
   const [gta, setGta] = useState('');
   const [sisbovMap, setSisbovMap] = useState<Record<string, string>>({});
   const [confirmacaoSanitaria, setConfirmacaoSanitaria] = useState(false);
+  const [lotesVazios, setLotesVazios] = useState(false);
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -80,6 +81,17 @@ export default function LoteDetail() {
       }
 
       try {
+        const lotesRef = collection(db, 'lotes');
+        const lotesSnap = await getDocs(lotesRef);
+        const estaVazio = lotesSnap.empty;
+        console.log('Lotes collection empty?', estaVazio);
+        setLotesVazios(estaVazio);
+
+        if (estaVazio) {
+          setLoading(false);
+          return;
+        }
+
         // Se id não for passado, tentar carregar por busca (mas por enquanto, segue o fluxo original)
         if (id) {
           // Carregar lote
@@ -270,6 +282,18 @@ export default function LoteDetail() {
   };
 
   if (loading) return <LayoutPadrao><p>Carregando...</p></LayoutPadrao>;
+  if (lotesVazios) {
+    return (
+      <LayoutPadrao>
+        <div style={{ padding: '20px', maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
+          <h2>Nenhum lote cadastrado no sistema.</h2>
+          <p style={{ color: '#555', fontSize: '16px', lineHeight: '1.6' }}>
+            Por favor, acesse a área de cadastro para iniciar.
+          </p>
+        </div>
+      </LayoutPadrao>
+    );
+  }
   if (!lote) return <LayoutPadrao><p>Lote não encontrado.</p></LayoutPadrao>;
 
   return (
@@ -428,7 +452,7 @@ export default function LoteDetail() {
         {/* Cabeçalho do Relatório */}
         <div style={{ textAlign: 'center', marginBottom: '30px', paddingBottom: '20px', borderBottom: '2px solid #1a73e8' }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
-            <img src="/assets/avatar-boi.svg" alt="Boi Fujão" style={{ width: '80px', height: '80px' }} />
+            <img src="/assets/logo192.png" alt="Boi Fujão" style={{ width: '80px', height: '80px' }} />
           </div>
           <h1 style={{ margin: 0, color: '#1a73e8' }}>Certidão de Rastreabilidade do Lote</h1>
           <h2 style={{ margin: '10px 0 0 0' }}>{lote.nome_lote}</h2>
