@@ -7,10 +7,10 @@ const navItems = [
   { label: 'Monitoramento', path: '/monitoramento' },
   { label: 'Cadastro', path: '/cadastro-animais' },
   { label: 'Pastos', path: '/gestao-pastos' },
-  { label: 'Lotes', path: '/gestao-lotes' },
+  { label: 'EDITAR LOTE', path: '/gestao-lotes' },
   { label: 'Completar Cadastro', path: '/completar-cadastro' },
   { label: 'Consulta Precisão', path: '/animal/1' },
-  { label: 'Lote Detail', path: '/lote/1' }
+  { label: 'DETALHES DO LOTE', path: '/lote/1' }
 ];
 
 export default function TopNav() {
