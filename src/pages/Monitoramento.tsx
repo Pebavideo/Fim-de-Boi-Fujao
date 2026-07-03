@@ -30,6 +30,7 @@ interface PastoData {
 interface Animal {
   id: string;
   idBrinco: string;
+  nome: string;
   categoria: string;
   peso: number;
   status: string;
@@ -37,6 +38,8 @@ interface Animal {
   pastoAtual: string;
   foto: string;
   dataCadastro: any;
+  lat?: number;
+  long?: number;
   latitude?: number;
   longitude?: number;
   bateria?: number;
@@ -57,7 +60,6 @@ export default function Monitoramento() {
   const [dadosLojista, setDadosLojista] = useState<DadosLojista | null>(null);
   const [itens, setItens] = useState<Item[]>([]);
   const [todosAnimais, setTodosAnimais] = useState<Animal[]>([]);
-  const [gatewayAnimais, setGatewayAnimais] = useState<GatewayAnimal[]>([]);
   const [pastos, setPastos] = useState<PastoData[]>([]);
   const [pastosCarregando, setPastosCarregando] = useState(true);
   const [geofenceAlerts, setGeofenceAlerts] = useState<{ animalId: string; idBrinco: string; status: 'outside' | 'no-signal' | 'nopasto' | 'nopolygon' | 'inside'; message: string; }[]>([]);
@@ -144,9 +146,9 @@ export default function Monitoramento() {
       const listaPastos = pastosSnap.docs
         .map((doc) => ({
           id: doc.id,
-          ...doc.data()
+          ...(doc.data() as { nome?: string; polygon?: number[][] })
         }))
-        .filter((pasto): pasto is PastoData => Boolean(pasto?.nome && typeof pasto.nome === 'string'));
+        .filter((pasto): pasto is PastoData => typeof pasto.nome === 'string');
 
       setPastos(listaPastos);
     } catch (error) {
@@ -202,7 +204,6 @@ export default function Monitoramento() {
         id: doc.id,
         ...doc.data()
       })) as GatewayAnimal[];
-      setGatewayAnimais(gatewayData);
 
       setTodosAnimais(prevAnimals => prevAnimals.map(animal => {
         const gatewayEntry = gatewayData.find(entry => entry.brinco_id === animal.idBrinco);

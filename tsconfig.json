@@ -14,6 +14,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "rootDir": "./src",
 
     /* Linting */
     "strict": true,
@@ -22,6 +23,6 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
-  "exclude": ["functions"], // Excluir a pasta functions
+  "exclude": ["functions"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
