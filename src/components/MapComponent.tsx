@@ -16,9 +16,10 @@ L.Icon.Default.mergeOptions({
 interface MapComponentProps {
   onPolygonCreated: (polygon: L.Polygon | null) => void;
   initialPolygon?: L.Polygon | null;
+  children?: React.ReactNode;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ onPolygonCreated, initialPolygon }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ onPolygonCreated, initialPolygon, children }) => {
   const featureGroupRef = useRef<L.FeatureGroup | null>(null);
 
   const onCreated = (e: any) => {
@@ -59,6 +60,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ onPolygonCreated, initialPo
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
       />
+      {children}
       <FeatureGroup ref={featureGroupRef}>
         <EditControl
           position="topright"
@@ -66,11 +68,16 @@ const MapComponent: React.FC<MapComponentProps> = ({ onPolygonCreated, initialPo
           onEdited={onEdited}
           onDeleted={onDeleted}
           draw={{
+            polygon: true,
             rectangle: false,
             marker: false,
             circlemarker: false,
             polyline: false,
             circle: false,
+          }}
+          edit={{
+            edit: true,
+            remove: true,
           }}
         />
       </FeatureGroup>

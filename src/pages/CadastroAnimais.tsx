@@ -171,7 +171,7 @@ export default function CadastroAnimais() {
 
     const user = auth.currentUser;
     if (!user?.email) {
-      alert('Usuário não autenticado!');
+      alert('Erro: Usuário não autenticado');
       return;
     }
 
@@ -185,25 +185,31 @@ export default function CadastroAnimais() {
       );
       const snapshot = await getDocs(q);
 
-      const dados = {
+      const formData = {
         idBrinco,
         categoria,
-        peso: pesoTotal,
         vacinasMedicamentos,
         origem: origem || null,
         dataNascimento: dataNascimento || null,
         pastoAutorizado,
         pastoAtual: pastoAutorizado,
-        historicoSaude: [],
-        historicoManejo: [],
-        dataCadastro: new Date(),
-        emailDono: user.email,
         lote,
         qtdCabecas,
         pesoPorCabeca,
         nomeFazenda: nomeFazenda || null,
         observacoes: observacoes || null,
         celularAlertas: celularAlertas.replace(/\D/g, ''), // Salvar apenas números
+        dono_email: user.email,
+        emailDono: user.email,
+      };
+
+      const dados = {
+        ...formData,
+        peso: pesoTotal,
+        arrobas: totalArrobas,
+        historicoSaude: [],
+        historicoManejo: [],
+        dataCadastro: new Date(),
         dataAtualizacao: new Date(),
       };
 

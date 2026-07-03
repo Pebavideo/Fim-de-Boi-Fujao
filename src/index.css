@@ -3,6 +3,16 @@ body { font-family: 'Segoe UI', sans-serif; font-display: swap; background: #f0f
 .foto-upload { width: 95px; height: 95px; border-radius: 50%; background: #eee; margin: 0 auto 20px auto; display: block; overflow: hidden; border: 3px solid #1a73e8; position: relative; cursor: pointer; }
 .foto-upload img { width: 100%; height: 100%; object-fit: cover; }
 .campo { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 1rem; }
+.btn-interativo {
+  transition: all 0.3s ease;
+  transform: translateY(0);
+  box-shadow: 0 0 0 transparent;
+  will-change: transform, box-shadow;
+}
+.btn-interativo:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
 .btn-blue, .btn-zap, .btn-pix, .btn-cancel, button[type="button"] {
   transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
 }

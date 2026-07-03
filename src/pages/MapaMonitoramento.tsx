@@ -1,12 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase/config';
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import LayoutPadrao from '../components/LayoutPadrao';
+import MapComponent from '../components/MapComponent';
 import Button from '../components/Button';
-import * as L from 'leaflet';
+import { Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { verificarPosicao } from '../utils/geofencing';
 
 interface AnimalData {
   id: string;
@@ -14,8 +14,7 @@ interface AnimalData {
   status?: string;
   latitude?: number;
   longitude?: number;
-  pastoAutorizado?: string; // Adicionado
-  pastoId?: string; // Adicionado
+  pastoAutorizado?: string;
   [key: string]: any;
 }
 
@@ -27,15 +26,11 @@ interface PastoData {
 
 export default function MapaMonitoramento() {
   const navigate = useNavigate();
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<L.Map | null>(null);
-  const markersRef = useRef<L.Marker[]>([]);
-
   const [animals, setAnimals] = useState<AnimalData[]>([]);
-  const [pastos, setPastos] = useState<PastoData[]>([]); // Novo estado para pastos
+  const [pastos, setPastos] = useState<PastoData[]>([]);
+  const [filtroBrinco, setFiltroBrinco] = useState('');
+  const [pastoSelecionado, setPastoSelecionado] = useState('');
   const [loading, setLoading] = useState(true);
-  const [centerLat, setCenterLat] = useState(-15.7801);
-  const [centerLng, setCenterLng] = useState(-47.9292);
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -46,32 +41,35 @@ export default function MapaMonitoramento() {
       }
 
       try {
-        // Carregar animais
         const animaisRef = collection(db, 'animais');
-        const qAnimais = query(animaisRef, where('emailDono', '==', user.email));
-        const snapshotAnimais = await getDocs(qAnimais);
-        const animalList = snapshotAnimais.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as AnimalData[];
+        const qAnimaisPorDono = query(animaisRef, where('dono_email', '==', user.email));
+        const qAnimaisPorEmailDono = query(animaisRef, where('emailDono', '==', user.email));
+
+        const [snapshotDonoEmail, snapshotEmailDono] = await Promise.all([
+          getDocs(qAnimaisPorDono),
+          getDocs(qAnimaisPorEmailDono)
+        ]);
+
+        const animaisMap = new Map<string, AnimalData>();
+        snapshotDonoEmail.docs.forEach(doc => {
+          animaisMap.set(doc.id, { id: doc.id, ...doc.data() } as AnimalData);
+        });
+        snapshotEmailDono.docs.forEach(doc => {
+          if (!animaisMap.has(doc.id)) {
+            animaisMap.set(doc.id, { id: doc.id, ...doc.data() } as AnimalData);
+          }
+        });
+
+        const animalList = Array.from(animaisMap.values());
         setAnimals(animalList);
 
-        // Carregar pastos
         const pastosRef = collection(db, 'pastos_do_usuario');
         const qPastos = query(pastosRef, where('emailDono', '==', user.email));
         const snapshotPastos = await getDocs(qPastos);
-        const pastoList = snapshotPastos.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as PastoData[];
+        const pastoList = snapshotPastos.docs.map(doc => ({ id: doc.id, ...doc.data() } as PastoData));
         setPastos(pastoList);
 
-        // Se houver animais com localização, centralize no primeiro
-        const comLocalizacao = animalList.filter(a => a.latitude && a.longitude);
-        if (comLocalizacao.length > 0) {
-          setCenterLat(comLocalizacao[0].latitude!);
-          setCenterLng(comLocalizacao[0].longitude!);
-        }
+        // Mantém o mapa centrado pelo CSS do componente MapComponent.
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
       } finally {
@@ -82,87 +80,59 @@ export default function MapaMonitoramento() {
     carregarDados();
   }, []);
 
-  useEffect(() => {
-    if (!mapRef.current) return;
-
-    // Inicializar mapa
-    const map = L.map(mapRef.current).setView([centerLat, centerLng], 13);
-    mapInstance.current = map;
-
-    // Adicionar tile layer do OpenStreetMap
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
-
-    return () => {
-      map.remove();
-    };
-  }, [centerLat, centerLng]);
-
-  useEffect(() => {
-    if (!mapInstance.current) return;
-
-    // Limpar marcadores antigos
-    markersRef.current.forEach(marker => marker.remove());
-    markersRef.current = [];
-
-    // Adicionar novos marcadores para animais com coordenadas e verificar geofencing
-    animals.forEach(async animal => {
-      if (animal.latitude && animal.longitude) {
-        const marker = L.marker([animal.latitude, animal.longitude])
-          .bindPopup(`
-            <div>
-              <h4>ID do Brinco: ${animal.idBrinco || 'Não informado'}</h4>
-              <p><strong>Status:</strong> ${animal.status || 'Não informado'}</p>
-              <p><strong>Pasto Autorizado:</strong> ${animal.pastoAutorizado || 'Não informado'}</p>
-            </div>
-          `)
-          .addTo(mapInstance.current!);
-        markersRef.current.push(marker);
-
-        // Lógica de Geofencing
-        const pastoAutorizado = pastos.find(p => p.nome === animal.pastoAutorizado);
-
-        if (pastoAutorizado && pastoAutorizado.polygon) {
-          const isInside = verificarPosicao(animal.latitude, animal.longitude, pastoAutorizado.polygon);
-
-          if (!isInside) {
-            console.warn(`Animal ${animal.idBrinco} está fora do pasto ${pastoAutorizado.nome}!`);
-            // Registrar alerta no Firestore
-            try {
-              await addDoc(collection(db, 'Alertas'), {
-                animalId: animal.id,
-                idBrinco: animal.idBrinco,
-                pastoId: pastoAutorizado.id,
-                pastoNome: pastoAutorizado.nome,
-                timestamp: serverTimestamp(),
-                status: 'pendente',
-                latitude: animal.latitude,
-                longitude: animal.longitude,
-              });
-              console.log('Alerta registrado com sucesso!');
-            } catch (error) {
-              console.error('Erro ao registrar alerta:', error);
-            }
-          }
-        }
-      }
-    });
-  }, [animals, pastos]);
+  const filteredAnimals = animals.filter((animal) => {
+    const matchesBrinco = filtroBrinco
+      ? animal.idBrinco?.toLowerCase().includes(filtroBrinco.toLowerCase())
+      : true;
+    const matchesPasto = pastoSelecionado
+      ? animal.pastoAutorizado === pastoSelecionado
+      : true;
+    return matchesBrinco && matchesPasto;
+  });
 
   return (
     <LayoutPadrao>
       <style>{`
         .leaflet-container {
+          width: 100%;
+          height: 100%;
           z-index: 1;
         }
       `}</style>
+
       <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h2>Monitoramento Geográfico</h2>
           <p style={{ color: '#666', marginTop: '6px' }}>Visualize a localização dos animais em tempo real.</p>
         </div>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ position: 'relative' }}>
+            <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#888' }}>🔍</span>
+            <input
+              type="text"
+              placeholder="Buscar brinco..."
+              value={filtroBrinco}
+              onChange={(e) => setFiltroBrinco(e.target.value)}
+              style={{
+                padding: '10px 12px 10px 34px',
+                borderRadius: '10px',
+                border: '1px solid #ddd',
+                minWidth: '220px'
+              }}
+            />
+          </div>
+          <select
+            value={pastoSelecionado}
+            onChange={(e) => setPastoSelecionado(e.target.value)}
+            style={{ padding: '10px 12px', borderRadius: '10px', border: '1px solid #ddd', minWidth: '200px' }}
+          >
+            <option value="">Todos os pastos</option>
+            {pastos.map((pasto) => (
+              <option key={pasto.id} value={pasto.nome}>
+                {pasto.nome}
+              </option>
+            ))}
+          </select>
           <Button onClick={() => navigate('/painel-principal')} className="btn-responsivo" style={{ background: '#9e9e9e', color: 'white', border: 'none', padding: '12px 18px', borderRadius: '10px' }}>
             Voltar
           </Button>
@@ -173,7 +143,22 @@ export default function MapaMonitoramento() {
         <p>Carregando dados...</p>
       ) : (
         <div style={{ width: '100%', height: '70vh', borderRadius: '15px', overflow: 'hidden' }}>
-          <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+          <MapComponent onPolygonCreated={() => {}}>
+            {filteredAnimals.map((animal) => {
+              if (!animal.latitude || !animal.longitude) return null;
+              return (
+                <Marker key={animal.id} position={[animal.latitude, animal.longitude]}>
+                  <Popup>
+                    <div>
+                      <strong>ID do Brinco:</strong> {animal.idBrinco || 'Não informado'}<br />
+                      <strong>Status:</strong> {animal.status || 'Não informado'}<br />
+                      <strong>Pasto:</strong> {animal.pastoAutorizado || 'Não informado'}
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+          </MapComponent>
         </div>
       )}
     </LayoutPadrao>

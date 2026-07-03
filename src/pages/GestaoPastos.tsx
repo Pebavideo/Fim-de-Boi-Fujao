@@ -12,8 +12,14 @@ interface Pasto {
   polygon?: number[][]; // Adicionado para armazenar as coordenadas do polígono
 }
 
+interface LoteDisponivel {
+  nome: string;
+  quantidadeCabecas: number;
+}
+
 export default function GestaoPastos() {
   const [pastos, setPastos] = useState<Pasto[]>([]);
+  const [lotesDisponiveis, setLotesDisponiveis] = useState<LoteDisponivel[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [novoPastoNome, setNovoPastoNome] = useState('');
   const [novoPastoPolygon, setNovoPastoPolygon] = useState<number[][] | undefined>(undefined);
@@ -26,7 +32,13 @@ export default function GestaoPastos() {
     }
 
     if (!novoPastoNome || !novoPastoPolygon) {
-      alert('Por favor, preencha o nome do pasto e desenhe o polígono.');
+      alert('Por favor, selecione um lote válido e desenhe o polígono.');
+      return;
+    }
+
+    const loteSelecionado = lotesDisponiveis.find((lote) => lote.nome === novoPastoNome);
+    if (!loteSelecionado) {
+      alert('Lote inválido. Selecione um lote cadastrado em Animais.');
       return;
     }
 
@@ -35,6 +47,7 @@ export default function GestaoPastos() {
         emailDono: user.email,
         nome: novoPastoNome,
         polygon: novoPastoPolygon,
+        quantidadeCabecas: loteSelecionado.quantidadeCabecas,
         criadoEm: serverTimestamp(),
       });
       setNovoPastoNome('');
@@ -59,6 +72,7 @@ export default function GestaoPastos() {
       const user = auth.currentUser;
       if (!user?.email) {
         setPastos([]);
+        setLotesDisponiveis([]);
         setCarregando(false);
         return;
       }
@@ -71,9 +85,37 @@ export default function GestaoPastos() {
           ...(doc.data() as any)
         })) as Pasto[];
         setPastos(lista);
+
+        const animaisRef = collection(db, 'animais');
+        const qDonoEmail = query(animaisRef, where('dono_email', '==', user.email));
+        const qEmailDono = query(animaisRef, where('emailDono', '==', user.email));
+        const [snapshotDonoEmail, snapshotEmailDono] = await Promise.all([
+          getDocs(qDonoEmail),
+          getDocs(qEmailDono),
+        ]);
+
+        const loteMap = new Map<string, number>();
+        snapshotDonoEmail.docs.forEach((doc) => {
+          const data = doc.data() as any;
+          const lote = data.lote?.trim();
+          if (lote) {
+            loteMap.set(lote, (loteMap.get(lote) || 0) + 1);
+          }
+        });
+        snapshotEmailDono.docs.forEach((doc) => {
+          const data = doc.data() as any;
+          const lote = data.lote?.trim();
+          if (lote) {
+            loteMap.set(lote, (loteMap.get(lote) || 0) + 1);
+          }
+        });
+
+        const listaLotes = Array.from(loteMap.entries()).map(([nome, quantidadeCabecas]) => ({ nome, quantidadeCabecas }));
+        setLotesDisponiveis(listaLotes);
       } catch (error) {
-        console.error('Erro ao carregar pastos:', error);
+        console.error('Erro ao carregar pastos e lotes:', error);
         setPastos([]);
+        setLotesDisponiveis([]);
       } finally {
         setCarregando(false);
       }
@@ -93,13 +135,32 @@ export default function GestaoPastos() {
 
       <div style={{ marginBottom: '30px', padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
         <h3>Cadastrar Novo Pasto</h3>
-        <input
-          type="text"
-          placeholder="Nome do Pasto"
-          value={novoPastoNome}
-          onChange={(e) => setNovoPastoNome(e.target.value)}
-          style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ddd' }}
-        />
+        <div style={{ marginBottom: '10px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', color: '#444' }}>Selecione o lote cadastrado em Animais</label>
+          <select
+            value={novoPastoNome}
+            onChange={(e) => setNovoPastoNome(e.target.value)}
+            style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ddd', backgroundColor: '#fff' }}
+          >
+            <option value="">Escolha um lote</option>
+            {lotesDisponiveis.map((lote) => (
+              <option key={lote.nome} value={lote.nome}>
+                {lote.nome} ({lote.quantidadeCabecas} cabeças)
+              </option>
+            ))}
+          </select>
+          {novoPastoNome && (
+            <div style={{ marginBottom: '12px', color: '#555', fontSize: '14px' }}>
+              <div><strong>Nome do Lote/Pasto:</strong> {novoPastoNome}</div>
+              <div><strong>Quantidade de Cabeças:</strong> {lotesDisponiveis.find((lote) => lote.nome === novoPastoNome)?.quantidadeCabecas ?? 0}</div>
+            </div>
+          )}
+          {!lotesDisponiveis.length && (
+            <div style={{ color: '#a00', fontSize: '14px' }}>
+              Nenhum lote encontrado em Animais. Cadastre ao menos um animal com lote para liberar a criação de pasto.
+            </div>
+          )}
+        </div>
         <div style={{ height: '400px', marginBottom: '10px' }}>
           <MapComponent onPolygonCreated={(polygon) => {
             if (polygon) {
@@ -113,13 +174,14 @@ export default function GestaoPastos() {
         </div>
         <button
           onClick={handleCriarPasto}
+          disabled={!novoPastoNome || !novoPastoPolygon}
           style={{
-            backgroundColor: '#4CAF50',
+            backgroundColor: !novoPastoNome || !novoPastoPolygon ? '#999' : '#4CAF50',
             color: 'white',
             padding: '10px 15px',
             border: 'none',
             borderRadius: '4px',
-            cursor: 'pointer',
+            cursor: !novoPastoNome || !novoPastoPolygon ? 'not-allowed' : 'pointer',
             fontSize: '16px'
           }}
         >

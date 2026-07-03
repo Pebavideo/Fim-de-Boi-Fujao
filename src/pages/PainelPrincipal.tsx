@@ -108,10 +108,10 @@ export default function PainelPrincipal() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '10px', zIndex: 100 }}>
-          <Button onClick={() => navigate('/cadastro-animais')} className="btn-responsivo" style={{ background: '#2196F3', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', zIndex: 100 }}>
+          <Button onClick={() => navigate('/cadastro-animais')} className="btn-responsivo btn-interativo" style={{ background: '#2196F3', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', zIndex: 100 }}>
             Novo Cadastro
           </Button>
-          <Button onClick={handleLogout} className="btn-responsivo" style={{ fontSize: '12px', color: 'white', background: '#ff4444', border: 'none', padding: '8px 16px', borderRadius: '8px', zIndex: 100 }}>
+          <Button onClick={handleLogout} className="btn-responsivo btn-interativo" style={{ fontSize: '12px', color: 'white', background: '#ff4444', border: 'none', padding: '8px 16px', borderRadius: '8px', zIndex: 100 }}>
             SAIR
           </Button>
         </div>
@@ -151,42 +151,42 @@ export default function PainelPrincipal() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '20px', background: '#fffbeb', padding: '20px', borderRadius: '15px', border: '2px dashed #f97316' }}>
         <Link to="/monitoramento" style={{ textDecoration: 'none' }}>
-          <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
+          <div className="btn-interativo" style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
             <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '18px' }}>1. Monitoramento</h3>
             <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>/monitoramento</p>
           </div>
         </Link>
 
         <Link to="/mapa-monitoramento" style={{ textDecoration: 'none' }}>
-          <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
+          <div className="btn-interativo" style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
             <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '18px' }}>2. Mapa Monitoramento</h3>
             <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>/mapa-monitoramento</p>
           </div>
         </Link>
 
         <Link to="/painel-principal" style={{ textDecoration: 'none' }}>
-          <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
+          <div className="btn-interativo" style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
             <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '18px' }}>3. Painel Principal</h3>
             <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>/painel-principal</p>
           </div>
         </Link>
 
         <Link to="/cadastro-animais" style={{ textDecoration: 'none' }}>
-          <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
+          <div className="btn-interativo" style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
             <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '18px' }}>4. Cadastro Animais</h3>
             <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>/cadastro-animais</p>
           </div>
         </Link>
 
         <Link to="/gestao-pastos" style={{ textDecoration: 'none' }}>
-          <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
+          <div className="btn-interativo" style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
             <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '18px' }}>5. Gestão Pastos</h3>
             <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>/gestao-pastos</p>
           </div>
         </Link>
 
         <Link to="/gestao-lotes" style={{ textDecoration: 'none' }}>
-          <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
+          <div className="btn-interativo" style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
             <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '18px' }}>6. Gestão Lotes</h3>
             <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>/gestao-lotes</p>
           </div>

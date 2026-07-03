@@ -96,3 +96,42 @@ export const receberDadosBrinco = functions.https.onRequest(async (req, res) => 
     return res.status(500).send('Internal Server Error');
   }
 });
+
+function sanitizeTopicName(value: string): string {
+  return `user_${value.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+}
+
+export const notificarDonoNoAlerta = functions.firestore
+  .document('Alertas/{alertaId}')
+  .onCreate(async (snapshot) => {
+    const alerta = snapshot.data();
+    const donoEmail = alerta?.dono_email as string | undefined;
+    const idBrinco = alerta?.idBrinco as string | undefined;
+    const pastoNome = alerta?.pastoNome as string | undefined;
+
+    if (!donoEmail) {
+      console.warn('Alerta sem dono_email não será notificado via FCM.');
+      return;
+    }
+
+    const topic = sanitizeTopicName(donoEmail);
+    const message = {
+      topic,
+      notification: {
+        title: 'Alerta de Cerca Eletrônica',
+        body: `Brinco ${idBrinco || 'desconhecido'} saiu do pasto ${pastoNome || 'autorizado'}.`,
+      },
+      data: {
+        dono_email: donoEmail,
+        idBrinco: idBrinco || '',
+        pastoNome: pastoNome || '',
+      },
+    };
+
+    try {
+      await admin.messaging().send(message);
+      console.log(`Notificação FCM enviada para o dono_email ${donoEmail}`);
+    } catch (error) {
+      console.error('Erro ao enviar notificação FCM:', error);
+    }
+  });
