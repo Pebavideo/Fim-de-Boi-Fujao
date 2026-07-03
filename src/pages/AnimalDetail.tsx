@@ -5,9 +5,11 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import LayoutPadrao from '../components/LayoutPadrao';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import { formatTrackingTechnology } from '../utils/VeterinarioModule';
 
 interface AnimalData {
   [key: string]: any;
+  tecnologiaRastreamento?: string;
 }
 
 interface HistoricoSaude {
@@ -33,37 +35,6 @@ function formatValue(value: any) {
   }
   if (typeof value === 'boolean') return value ? 'Sim' : 'Não';
   return String(value);
-}
-
-async function attachLoteData(animal: AnimalData): Promise<AnimalData> {
-  if (!animal?.lote) {
-    return { ...animal, gta: '', crmv: '', nomeResponsavelTecnico: '' };
-  }
-
-  try {
-    const lotesRef = collection(db, 'lotes');
-    let loteQuery = query(lotesRef, where('nome_lote', '==', animal.lote));
-    let loteSnap = await getDocs(loteQuery);
-
-    if (loteSnap.empty) {
-      loteQuery = query(lotesRef, where('id_lote', '==', animal.lote));
-      loteSnap = await getDocs(loteQuery);
-    }
-
-    if (!loteSnap.empty) {
-      const loteData = loteSnap.docs[0].data() as Record<string, any>;
-      return {
-        ...animal,
-        gta: loteData.gta || '',
-        crmv: loteData.crmv || '',
-        nomeResponsavelTecnico: loteData.nomeResponsavelTecnico || loteData.responsavelTecnico || ''
-      };
-    }
-  } catch (error) {
-    console.error('Erro ao buscar dados do lote:', error);
-  }
-
-  return { ...animal, gta: '', crmv: '', nomeResponsavelTecnico: '' };
 }
 
 export default function AnimalDetail() {
@@ -108,9 +79,8 @@ export default function AnimalDetail() {
       if (!snapshot.empty) {
         const docData = snapshot.docs[0].data();
         const animal = { id: snapshot.docs[0].id, ...docData };
-        const enrichedAnimal = await attachLoteData(animal);
-        setSelectedAnimal(enrichedAnimal);
-        setAnimals([enrichedAnimal]);
+        setSelectedAnimal(animal);
+        setAnimals([animal]);
       } else {
         setSelectedAnimal(null);
         setAnimals([]);
@@ -151,8 +121,7 @@ export default function AnimalDetail() {
         const animalList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setAnimals(animalList);
         if (animalList.length === 1) {
-          const enrichedAnimal = await attachLoteData(animalList[0]);
-          setSelectedAnimal(enrichedAnimal);
+          setSelectedAnimal(animalList[0]);
         } else {
           setSelectedAnimal(null);
         }
@@ -316,6 +285,10 @@ export default function AnimalDetail() {
                 <p style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 'bold' }}>{selectedAnimal.categoria || 'Não informado'}</p>
               </div>
               <div>
+                <span style={{ fontSize: '14px', opacity: 0.9 }}>Tecnologia</span>
+                <p style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 'bold' }}>{formatTrackingTechnology(selectedAnimal)}</p>
+              </div>
+              <div>
                 <span style={{ fontSize: '14px', opacity: 0.9 }}>Data de Nascimento</span>
                 <p style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 'bold' }}>{formatValue(selectedAnimal.dataNascimento)}</p>
               </div>
@@ -414,24 +387,6 @@ export default function AnimalDetail() {
           }}>
             <h3 style={{ margin: '0 0 16px 0', color: '#1a73e8', fontSize: '20px' }}>📄 Informações Adicionais</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
-              {selectedAnimal.gta && (
-                <div>
-                  <span style={{ color: '#4b5563', fontSize: '14px' }}>GTA</span>
-                  <p style={{ margin: '4px 0 0 0', fontWeight: 'bold', color: '#111827' }}>{selectedAnimal.gta}</p>
-                </div>
-              )}
-              {selectedAnimal.crmv && (
-                <div>
-                  <span style={{ color: '#4b5563', fontSize: '14px' }}>CRMV</span>
-                  <p style={{ margin: '4px 0 0 0', fontWeight: 'bold', color: '#111827' }}>{selectedAnimal.crmv}</p>
-                </div>
-              )}
-              {selectedAnimal.nomeResponsavelTecnico && (
-                <div>
-                  <span style={{ color: '#4b5563', fontSize: '14px' }}>Responsável Técnico</span>
-                  <p style={{ margin: '4px 0 0 0', fontWeight: 'bold', color: '#111827' }}>{selectedAnimal.nomeResponsavelTecnico}</p>
-                </div>
-              )}
               {selectedAnimal.nomeFazenda && (
                 <div>
                   <span style={{ color: '#4b5563', fontSize: '14px' }}>Fazenda</span>

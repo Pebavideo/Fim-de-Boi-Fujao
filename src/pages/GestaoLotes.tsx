@@ -310,7 +310,7 @@ export default function GestaoLotes() {
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px', marginBottom: '20px' }}>
             <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5' }}>
               <h3 style={{ marginTop: 0, marginBottom: '15px' }}>Buscar</h3>
               
@@ -343,20 +343,21 @@ export default function GestaoLotes() {
                   </p>
                 ) : (
                   lotesFiltrados.map(loteItem => (
-                    <div
-                      key={loteItem.id}
-                      style={{
-                        background: lote === loteItem.nome_lote ? '#e8f0ff' : 'white',
-                        border: lote === loteItem.nome_lote ? '1px solid #1a73e8' : '1px solid #eee',
-                        padding: '15px',
-                        borderRadius: '10px',
-                        marginBottom: '10px',
-                        cursor: 'pointer'
-                      }}
+                          <div
+                            key={loteItem.id}
+                            style={{
+                              background: lote === loteItem.nome_lote ? '#e8f0ff' : 'white',
+                              border: lote === loteItem.nome_lote ? '1px solid #1a73e8' : '1px solid #eee',
+                              padding: '15px',
+                              borderRadius: '10px',
+                              marginBottom: '10px',
+                              cursor: 'pointer',
+                              wordBreak: 'break-word'
+                            }}
                       onClick={() => handleSelecionarLote(loteItem.id)}
                     >
                       <h4 style={{ margin: '0 0 5px 0' }}>{loteItem.nome_lote}</h4>
-                      <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
+                      <p style={{ margin: 0, color: '#666', fontSize: '0.875rem' }}>
                         {loteItem.animais.length} cabeças
                       </p>
                     </div>
@@ -391,7 +392,7 @@ export default function GestaoLotes() {
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Nome da Fazenda</label>
+                  <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Nome da Fazenda</label>
                   <Input
                     type="text"
                     placeholder="Nome da fazenda ou propriedade"
@@ -403,7 +404,7 @@ export default function GestaoLotes() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px', marginBottom: '20px' }}>
                   <div>
-                    <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Identificação do Brinco</label>
+                    <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Identificação do Brinco</label>
                     <Input
                       type="text"
                       placeholder="Número do brinco"
@@ -414,7 +415,7 @@ export default function GestaoLotes() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Categoria</label>
+                    <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Categoria</label>
                     <Input
                       type="text"
                       placeholder="Boi, Vaca, Bezerro..."
@@ -425,7 +426,7 @@ export default function GestaoLotes() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Origem (opcional)</label>
+                    <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Origem (opcional)</label>
                     <Input
                       type="text"
                       placeholder="Compra, Nascimento na propriedade..."
@@ -436,7 +437,7 @@ export default function GestaoLotes() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Data de Nascimento (opcional)</label>
+                    <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Data de Nascimento (opcional)</label>
                     <Input
                       type="date"
                       value={dataNascimento}
@@ -446,7 +447,7 @@ export default function GestaoLotes() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Pasto Autorizado</label>
+                    <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Pasto Autorizado</label>
                     <Input
                       type="text"
                       placeholder="Digite o nome do pasto autorizado"
@@ -457,7 +458,7 @@ export default function GestaoLotes() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Lote</label>
+                    <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Lote</label>
                     <Input
                       type="text"
                       placeholder="Nome do lote"
@@ -468,7 +469,7 @@ export default function GestaoLotes() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Quantidade de Cabeças</label>
+                    <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Quantidade de Cabeças</label>
                     <Input
                       type="number"
                       placeholder="Quantidade"
@@ -479,7 +480,7 @@ export default function GestaoLotes() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Peso Médio por Cabeça (kg)</label>
+                    <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Peso Médio por Cabeça (kg)</label>
                     <Input
                       type="number"
                       step="0.01"
@@ -492,7 +493,7 @@ export default function GestaoLotes() {
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Vacinas/Medicamentos</label>
+                  <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Vacinas/Medicamentos</label>
                   <textarea
                     value={vacinasMedicamentos}
                     onChange={(e) => setVacinasMedicamentos(e.target.value)}
@@ -502,7 +503,7 @@ export default function GestaoLotes() {
                       padding: '10px 12px',
                       border: '1px solid #dce4f5',
                       borderRadius: '8px',
-                      fontSize: '14px',
+                      fontSize: '0.875rem',
                       resize: 'none',
                       fontFamily: 'inherit',
                       lineHeight: '1.5',
@@ -511,7 +512,7 @@ export default function GestaoLotes() {
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Observações</label>
+                  <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Observações</label>
                   <textarea
                     value={observacoes}
                     onChange={(e) => setObservacoes(e.target.value)}
@@ -521,7 +522,7 @@ export default function GestaoLotes() {
                       padding: '10px 12px',
                       border: '1px solid #dce4f5',
                       borderRadius: '8px',
-                      fontSize: '14px',
+                      fontSize: '0.875rem',
                       resize: 'none',
                       fontFamily: 'inherit',
                       lineHeight: '1.5',

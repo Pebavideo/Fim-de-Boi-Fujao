@@ -4,11 +4,13 @@ import { auth, db } from '../firebase/config';
 import { doc, getDoc, collection, getDocs, query, where, updateDoc, writeBatch } from 'firebase/firestore';
 import LayoutPadrao from '../components/LayoutPadrao';
 import Button from '../components/Button';
+import { formatCrmv, formatSisbov, formatTrackingTechnology, isValidCrmv, buildLoteCertificadoData, getAnimalSisbov } from '../utils/VeterinarioModule';
 
 interface AnimalData {
   id: string;
   idBrinco?: string;
   sisbov?: string;
+  tecnologiaRastreamento?: string;
   [key: string]: any;
 }
 
@@ -35,26 +37,6 @@ function formatValue(value: any) {
   }
   if (typeof value === 'boolean') return value ? 'Sim' : 'Não';
   return String(value);
-}
-
-function formatCrmv(value: string): string {
-  // Remove caracteres não permitidos
-  value = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-  
-  // Aplica máscara CRMV/UF + número (ex: CRMV/SP12345)
-  if (value.startsWith('CRMV')) {
-    value = value.replace('CRMV', '');
-  }
-  if (value.length <= 2) {
-    return `CRMV/${value}`;
-  } else {
-    return `CRMV/${value.slice(0, 2)}${value.slice(2, 10)}`;
-  }
-}
-
-function formatSisbov(value: string): string {
-  // Remove caracteres não numéricos e limita a 15 dígitos
-  return value.replace(/\D/g, '').slice(0, 15);
 }
 
 export default function LoteDetail() {
@@ -132,8 +114,9 @@ export default function LoteDetail() {
           // Carregar map de SISBOV dos animais
           const initialSisbovMap: Record<string, string> = {};
           animaisList.forEach(animal => {
-            if (animal.sisbov) {
-              initialSisbovMap[animal.id] = animal.sisbov;
+            const val = getAnimalSisbov(animal, {});
+            if (val) {
+              initialSisbovMap[animal.id] = val;
             }
           });
           setSisbovMap(initialSisbovMap);
@@ -175,16 +158,14 @@ export default function LoteDetail() {
       return;
     }
 
-    // Validação básica do formato do CRMV
-    const crmvRegex = /^CRMV\/[A-Z]{2}[0-9]+$/;
-    if (!crmvRegex.test(crmv)) {
+    if (!isValidCrmv(crmv)) {
       alert('Por favor, informe um CRMV válido no formato CRMV/UF + número (ex: CRMV/SP12345).');
       return;
     }
 
     // Verificar se todos os animais têm SISBOV preenchido
     for (const animal of animais) {
-      const animalSisbov = sisbovMap[animal.id] || animal.sisbov;
+      const animalSisbov = getAnimalSisbov(animal, sisbovMap);
       if (!animalSisbov) {
         alert(`Por favor, informe o número SISBOV do animal ${animal.idBrinco || animal.id}.`);
         return;
@@ -196,20 +177,17 @@ export default function LoteDetail() {
       const loteRef = doc(db, 'lotes', id);
       
       // Atualizar lote no batch
-      batch.update(loteRef, {
+      batch.update(loteRef, buildLoteCertificadoData(
         nomeFazenda,
         nomeResponsavelTecnico,
         crmv,
         gta,
-        confirmacaoSanitaria,
-        dataAssinatura: new Date(),
-        assinaturaEletronica: nomeResponsavelTecnico,
-        status: 'CERTIFICADO'
-      });
+        confirmacaoSanitaria
+      ));
 
       // Atualizar animais no batch
       for (const animal of animais) {
-        const animalSisbov = sisbovMap[animal.id] || animal.sisbov;
+        const animalSisbov = getAnimalSisbov(animal, sisbovMap);
         const animalRef = doc(db, 'animais', animal.id);
         batch.update(animalRef, {
           sisbov: animalSisbov
@@ -222,14 +200,13 @@ export default function LoteDetail() {
       setEditingEnabled(false);
       setLote(prev => prev ? {
         ...prev,
-        nomeFazenda,
-        nomeResponsavelTecnico,
-        crmv,
-        gta,
-        confirmacaoSanitaria,
-        dataAssinatura: new Date(),
-        assinaturaEletronica: nomeResponsavelTecnico,
-        status: 'CERTIFICADO'
+        ...buildLoteCertificadoData(
+          nomeFazenda,
+          nomeResponsavelTecnico,
+          crmv,
+          gta,
+          confirmacaoSanitaria
+        )
       } : null);
       
       alert('Certificado finalizado e emitido com sucesso!');
@@ -287,7 +264,7 @@ export default function LoteDetail() {
       <LayoutPadrao>
         <div style={{ padding: '20px', maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
           <h2>Nenhum lote cadastrado no sistema.</h2>
-          <p style={{ color: '#555', fontSize: '16px', lineHeight: '1.6' }}>
+          <p style={{ color: '#555', fontSize: '1rem', lineHeight: '1.6' }}>
             Por favor, acesse a área de cadastro para iniciar.
           </p>
         </div>
@@ -303,11 +280,12 @@ export default function LoteDetail() {
           body * {
             visibility: hidden;
           }
+          .no-print, .no-print * {
+            display: none !important;
+            visibility: hidden !important;
+          }
           .print-area, .print-area * {
             visibility: visible;
-          }
-          .no-print {
-            display: none !important;
           }
           .print-area {
             position: absolute;
@@ -459,16 +437,16 @@ export default function LoteDetail() {
           <p style={{ margin: '8px 0 0 0', color: '#666' }}>
             Data de Emissão: {new Date().toLocaleDateString('pt-BR')}
           </p>
-          <p style={{ margin: '5px 0 0 0', fontWeight: 'bold', fontSize: '18px' }}>
+          <p style={{ margin: '5px 0 0 0', fontWeight: 'bold', fontSize: '1.125rem' }}>
             Total de Cabeças: {animais.length}
           </p>
           {gta && (
-            <p style={{ margin: '5px 0 0 0', fontWeight: 'bold', fontSize: '16px', color: '#1a73e8' }}>
+            <p style={{ margin: '5px 0 0 0', fontWeight: 'bold', fontSize: '1rem', color: '#1a73e8' }}>
               GTA (Guia de Trânsito Animal): {gta}
             </p>
           )}
           {lote.status === 'CERTIFICADO' && (
-            <p style={{ margin: '10px 0 0 0', color: '#4CAF50', fontWeight: 'bold', fontSize: '16px' }}>
+            <p style={{ margin: '10px 0 0 0', color: '#4CAF50', fontWeight: 'bold', fontSize: '1rem' }}>
               ✅ Certificado Válido para Governo
             </p>
           )}
@@ -479,7 +457,7 @@ export default function LoteDetail() {
           <h3 style={{ color: '#333', marginBottom: '20px' }}>Identificação Oficial</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
             <div>
-              <label style={{ fontSize: '14px', color: '#666', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nome da Fazenda:</label>
+              <label style={{ fontSize: '0.875rem', color: '#666', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nome da Fazenda:</label>
               <input 
                 type="text" 
                 className="input-field" 
@@ -490,7 +468,7 @@ export default function LoteDetail() {
               />
             </div>
             <div>
-              <label style={{ fontSize: '14px', color: '#666', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nome do Responsável Técnico (Veterinário) <span style={{ color: '#c62828' }}>*</span>:</label>
+              <label style={{ fontSize: '0.875rem', color: '#666', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nome do Responsável Técnico (Veterinário) <span style={{ color: '#c62828' }}>*</span>:</label>
               <input 
                 type="text" 
                 className="input-field" 
@@ -501,7 +479,7 @@ export default function LoteDetail() {
               />
             </div>
             <div>
-              <label style={{ fontSize: '14px', color: '#666', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>CRMV (Registro Profissional) <span style={{ color: '#c62828' }}>*</span>:</label>
+              <label style={{ fontSize: '0.875rem', color: '#666', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>CRMV (Registro Profissional) <span style={{ color: '#c62828' }}>*</span>:</label>
               <input 
                 type="text" 
                 className="input-field" 
@@ -512,7 +490,7 @@ export default function LoteDetail() {
               />
             </div>
             <div>
-              <label style={{ fontSize: '14px', color: '#666', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>GTA (Guia de Trânsito Animal) <span style={{ color: '#c62828' }}>*</span>:</label>
+              <label style={{ fontSize: '0.875rem', color: '#666', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>GTA (Guia de Trânsito Animal) <span style={{ color: '#c62828' }}>*</span>:</label>
               <input 
                 type="text" 
                 className="input-field" 
@@ -537,13 +515,14 @@ export default function LoteDetail() {
                   <tr style={{ background: '#1a73e8', color: 'white' }}>
                     <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dce4f5' }}>Brinco</th>
                     <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dce4f5' }}>Número SISBOV <span style={{ color: '#ffeb3b' }}>*</span></th>
+                    <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dce4f5' }}>Tecnologia</th>
                     <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dce4f5' }}>Data da Última Vacina</th>
                     <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dce4f5' }}>Status de Saúde</th>
                   </tr>
                 </thead>
                 <tbody>
                   {animais.map((animal) => {
-                    const animalSisbov = sisbovMap[animal.id] || animal.sisbov || '';
+                    const animalSisbov = getAnimalSisbov(animal, sisbovMap);
                     return (
                       <tr key={animal.id} style={{ borderBottom: '1px solid #eee' }}>
                         <td style={{ padding: '12px', fontWeight: 'bold' }}>{formatValue(animal.idBrinco)}</td>
@@ -564,6 +543,9 @@ export default function LoteDetail() {
                           ) : (
                             <span style={{ fontWeight: 'bold' }}>{animalSisbov}</span>
                           )}
+                        </td>
+                        <td style={{ padding: '12px' }}>
+                          <span style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{formatTrackingTechnology(animal)}</span>
                         </td>
                         <td style={{ padding: '12px' }}>{formatValue(animal.dataUltimaVacina) || 'Não registrada'}</td>
                         <td style={{ padding: '12px' }}>
@@ -594,7 +576,7 @@ export default function LoteDetail() {
           ) : (
             <div style={{ display: 'grid', gap: '20px' }}>
               {animais.map((animal, index) => {
-                const animalSisbov = sisbovMap[animal.id] || animal.sisbov;
+                const animalSisbov = getAnimalSisbov(animal, sisbovMap);
                 return (
                   <div 
                     key={animal.id} 
@@ -610,31 +592,35 @@ export default function LoteDetail() {
                     </h4>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
                       <div>
-                        <span style={{ fontSize: '13px', color: '#777' }}>Número SISBOV:</span>
+                        <span style={{ fontSize: '0.8125rem', color: '#777' }}>Número SISBOV:</span>
                         <div style={{ fontWeight: 'bold' }}>{formatValue(animalSisbov)}</div>
                       </div>
                       <div>
-                        <span style={{ fontSize: '13px', color: '#777' }}>Categoria:</span>
+                        <span style={{ fontSize: '0.8125rem', color: '#777' }}>Categoria:</span>
                         <div style={{ fontWeight: 'bold' }}>{formatValue(animal.categoria)}</div>
                       </div>
                       <div>
-                        <span style={{ fontSize: '13px', color: '#777' }}>Peso:</span>
+                        <span style={{ fontSize: '0.8125rem', color: '#777' }}>Tecnologia de Rastreamento:</span>
+                        <div style={{ fontWeight: 'bold' }}>{formatTrackingTechnology(animal)}</div>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.8125rem', color: '#777' }}>Peso:</span>
                         <div style={{ fontWeight: 'bold' }}>{formatValue(animal.peso)} kg</div>
                       </div>
                       <div>
-                        <span style={{ fontSize: '13px', color: '#777' }}>Pasto Autorizado:</span>
+                        <span style={{ fontSize: '0.8125rem', color: '#777' }}>Pasto Autorizado:</span>
                         <div style={{ fontWeight: 'bold' }}>{formatValue(animal.pastoAutorizado)}</div>
                       </div>
                       <div>
-                        <span style={{ fontSize: '13px', color: '#777' }}>Pasto Atual:</span>
+                        <span style={{ fontSize: '0.8125rem', color: '#777' }}>Pasto Atual:</span>
                         <div style={{ fontWeight: 'bold' }}>{formatValue(animal.pastoAtual)}</div>
                       </div>
                       <div>
-                        <span style={{ fontSize: '13px', color: '#777' }}>Data de Cadastro:</span>
+                        <span style={{ fontSize: '0.8125rem', color: '#777' }}>Data de Cadastro:</span>
                         <div style={{ fontWeight: 'bold' }}>{formatValue(animal.dataCadastro)}</div>
                       </div>
                       <div>
-                        <span style={{ fontSize: '13px', color: '#777' }}>Observações:</span>
+                        <span style={{ fontSize: '0.8125rem', color: '#777' }}>Observações:</span>
                         <div style={{ fontWeight: 'bold' }}>{formatValue(animal.observacoes)}</div>
                       </div>
                     </div>
@@ -646,11 +632,11 @@ export default function LoteDetail() {
         </div>
 
         {/* Bloco de Assinatura */}
-        <div style={{ borderTop: '2px solid #1a73e8', paddingTop: '30px', marginTop: '30px' }}>
+        <div className="signature-section" style={{ borderTop: '2px solid #000', paddingTop: '30px', marginTop: '30px', pageBreakInside: 'avoid' }}>
           <h3 style={{ marginBottom: '20px', color: '#333' }}>Validação Veterinária Oficial</h3>
           <div style={{ display: 'grid', gap: '20px' }}>
             <div className="no-print">
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '16px', cursor: editingEnabled ? 'pointer' : 'not-allowed' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1rem', cursor: editingEnabled ? 'pointer' : 'not-allowed' }}>
                 <input 
                   type="checkbox" 
                   checked={confirmacaoSanitaria} 
@@ -664,22 +650,26 @@ export default function LoteDetail() {
             {confirmacaoSanitaria && (
               <>
                 <div>
-                  <label style={{ fontSize: '14px', color: '#666', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nome do Veterinário (Assinatura Eletrônica):</label>
-                  <div style={{ fontSize: '16px', fontWeight: 'bold', padding: '10px 0', borderBottom: '1px solid #000' }}>
+                  <label style={{ fontSize: '0.875rem', color: '#666', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nome do Veterinário (Assinatura Eletrônica):</label>
+                  <div style={{ fontSize: '1rem', fontWeight: 'bold', padding: '10px 0', borderBottom: '1px solid #000', minHeight: '100px' }}>
                     {nomeResponsavelTecnico || lote.nomeResponsavelTecnico || 'Não informado'}
                   </div>
                 </div>
                 <div>
-                  <label style={{ fontSize: '14px', color: '#666', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>CRMV (Registro Profissional):</label>
-                  <div style={{ fontSize: '16px', fontWeight: 'bold', padding: '10px 0', borderBottom: '1px solid #000' }}>
+                  <label style={{ fontSize: '0.875rem', color: '#666', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>CRMV (Registro Profissional):</label>
+                  <div style={{ fontSize: '1rem', fontWeight: 'bold', padding: '10px 0', borderBottom: '1px solid #000' }}>
                     {crmv || lote.crmv || 'Não informado'}
                   </div>
                 </div>
                 <div>
-                  <label style={{ fontSize: '14px', color: '#666', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Data da Assinatura:</label>
-                  <div style={{ fontSize: '16px', fontWeight: 'bold', padding: '10px 0', borderBottom: '1px solid #000' }}>
+                  <label style={{ fontSize: '0.875rem', color: '#666', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Data da Assinatura:</label>
+                  <div style={{ fontSize: '1rem', fontWeight: 'bold', padding: '10px 0', borderBottom: '1px solid #000' }}>
                     {lote.dataAssinatura ? formatValue(lote.dataAssinatura) : new Date().toLocaleDateString('pt-BR')}
                   </div>
+                </div>
+                <div style={{ marginTop: '20px' }}>
+                  <label style={{ fontSize: '14px', color: '#666', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Linha de Assinatura Manual:</label>
+                  <div style={{ minHeight: '40px', borderBottom: '1px solid #000' }} />
                 </div>
               </>
             )}

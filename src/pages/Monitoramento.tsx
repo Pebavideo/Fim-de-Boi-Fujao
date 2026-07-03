@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase/config';
-import { doc, getDoc, collection, getDocs, updateDoc, deleteDoc, limit, query, orderBy, startAfter, QueryDocumentSnapshot, where } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, getDocs, updateDoc, deleteDoc, limit, query, orderBy, startAfter, QueryDocumentSnapshot, where } from 'firebase/firestore';
 import { logoutSeguro } from '../utils/auth';
+import { formatTrackingTechnology } from '../utils/VeterinarioModule';
+import { verificarPosicao } from '../utils/geofencing';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import LayoutPadrao from '../components/LayoutPadrao';
@@ -19,6 +21,12 @@ interface Item {
   valor: number;
 }
 
+interface PastoData {
+  id: string;
+  nome: string;
+  polygon?: number[][];
+}
+
 interface Animal {
   id: string;
   idBrinco: string;
@@ -29,6 +37,19 @@ interface Animal {
   pastoAtual: string;
   foto: string;
   dataCadastro: any;
+  latitude?: number;
+  longitude?: number;
+  bateria?: number;
+  tecnologiaRastreamento?: string;
+}
+
+interface GatewayAnimal {
+  id: string;
+  brinco_id: string;
+  lat: number;
+  long: number;
+  bateria: number;
+  timestamp?: any;
 }
 
 export default function Monitoramento() {
@@ -36,8 +57,10 @@ export default function Monitoramento() {
   const [dadosLojista, setDadosLojista] = useState<DadosLojista | null>(null);
   const [itens, setItens] = useState<Item[]>([]);
   const [todosAnimais, setTodosAnimais] = useState<Animal[]>([]);
-  const [pastos, setPastos] = useState<string[]>([]);
+  const [gatewayAnimais, setGatewayAnimais] = useState<GatewayAnimal[]>([]);
+  const [pastos, setPastos] = useState<PastoData[]>([]);
   const [pastosCarregando, setPastosCarregando] = useState(true);
+  const [geofenceAlerts, setGeofenceAlerts] = useState<{ animalId: string; idBrinco: string; status: 'outside' | 'no-signal' | 'nopasto' | 'nopolygon' | 'inside'; message: string; }[]>([]);
   const [pastoSelecionado, setPastoSelecionado] = useState('');
   const [filtroBusca, setFiltroBusca] = useState('');
   const [carregando, setCarregando] = useState(true);
@@ -119,10 +142,11 @@ export default function Monitoramento() {
       const pastosQuery = query(pastosRef, where('emailDono', '==', user.email));
       const pastosSnap = await getDocs(pastosQuery);
       const listaPastos = pastosSnap.docs
-        .map((doc) => doc.data()?.nome)
-        .filter((nome): nome is string => typeof nome === 'string' && nome.trim() !== '')
-        .map((nome) => nome.trim())
-        .filter((value, index, self) => self.findIndex((n) => n.toLowerCase() === value.toLowerCase()) === index);
+        .map((doc) => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        .filter((pasto): pasto is PastoData => Boolean(pasto?.nome && typeof pasto.nome === 'string'));
 
       setPastos(listaPastos);
     } catch (error) {
@@ -170,6 +194,81 @@ export default function Monitoramento() {
     carregarDados();
     carregarPastosDoUsuario();
   }, []);
+
+  useEffect(() => {
+    const monitorCollection = collection(db, 'monitoramento_animais');
+    const unsubscribe = onSnapshot(monitorCollection, snapshot => {
+      const gatewayData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as GatewayAnimal[];
+      setGatewayAnimais(gatewayData);
+
+      setTodosAnimais(prevAnimals => prevAnimals.map(animal => {
+        const gatewayEntry = gatewayData.find(entry => entry.brinco_id === animal.idBrinco);
+        if (!gatewayEntry) {
+          return animal;
+        }
+        return {
+          ...animal,
+          latitude: gatewayEntry.lat,
+          longitude: gatewayEntry.long,
+          bateria: gatewayEntry.bateria
+        };
+      }));
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!todosAnimais.length || !pastos.length) {
+      setGeofenceAlerts([]);
+      return;
+    }
+
+    const generatedAlerts = todosAnimais.map((animal) => {
+      if (!animal.latitude || !animal.longitude) {
+        return {
+          animalId: animal.id,
+          idBrinco: animal.idBrinco,
+          status: 'no-signal' as const,
+          message: `Animal ${animal.idBrinco || animal.id} sem sinal de GPS.`
+        };
+      }
+
+      if (!animal.pastoAutorizado) {
+        return {
+          animalId: animal.id,
+          idBrinco: animal.idBrinco,
+          status: 'nopasto' as const,
+          message: `Animal ${animal.idBrinco || animal.id} não possui pasto autorizado definido.`
+        };
+      }
+
+      const pasto = pastos.find(p => p.nome === animal.pastoAutorizado);
+      if (!pasto || !pasto.polygon || !pasto.polygon.length) {
+        return {
+          animalId: animal.id,
+          idBrinco: animal.idBrinco,
+          status: 'nopolygon' as const,
+          message: `Animal ${animal.idBrinco || animal.id} não possui área registrada para o pasto ${animal.pastoAutorizado}.`
+        };
+      }
+
+      const isInside = verificarPosicao(animal.latitude, animal.longitude, pasto.polygon);
+      return {
+        animalId: animal.id,
+        idBrinco: animal.idBrinco,
+        status: isInside ? 'inside' as const : 'outside' as const,
+        message: isInside
+          ? `Animal ${animal.idBrinco || animal.id} está dentro da área delimitada.`
+          : `Animal ${animal.idBrinco || animal.id} saiu da área delimitada!`
+      };
+    });
+
+    setGeofenceAlerts(generatedAlerts.filter(alert => alert.status !== 'inside'));
+  }, [todosAnimais, pastos]);
 
   // Filtro local
   const animaisFiltrados = todosAnimais.filter(animal => {
@@ -289,16 +388,27 @@ export default function Monitoramento() {
             <option value="">Carregando pastos...</option>
           ) : (
             pastos.map((pasto) => (
-              <option key={pasto} value={pasto}>{pasto}</option>
+              <option key={pasto.id} value={pasto.nome}>{pasto.nome}</option>
             ))
           )}
         </select>
       </div>
 
+      {geofenceAlerts.length > 0 && (
+        <div style={{ marginBottom: '20px', display: 'grid', gap: '12px', padding: '16px', borderRadius: '14px', background: '#fff3f3', border: '1px solid #f5c6cb' }}>
+          <h3 style={{ margin: 0, color: '#c62828', fontSize: '1rem' }}>Alertas de Cerca Virtual</h3>
+          {geofenceAlerts.map((alert) => (
+            <div key={alert.animalId} style={{ background: '#fde7e9', border: '1px solid #f5c6cb', borderRadius: '10px', padding: '12px', color: '#9a1c25', fontSize: '0.95rem' }}>
+              <strong>{alert.message}</strong>
+            </div>
+          ))}
+        </div>
+      )}
+
       {carregando ? (
         <p>Carregando dados...</p>
       ) : !todosAnimais.length ? (
-        <div style={{ padding: '20px 0', color: '#666', fontSize: '16px' }}>
+        <div style={{ padding: '20px 0', color: '#666', fontSize: '1rem' }}>
           Nenhum animal cadastrado no momento.
         </div>
       ) : dadosLojista ? (
@@ -379,10 +489,18 @@ export default function Monitoramento() {
                         {animal.idBrinco} 
                         {fugiu && <span style={{ color: '#f44336', fontSize: '18px' }}>⚠️</span>}
                       </div>
-                      <div style={{ fontSize: '14px', color: '#666' }}>
+                      <div style={{ fontSize: '0.875rem', color: '#666', marginBottom: '4px' }}>
                         {animal.categoria} • {animal.peso}kg • {animal.status}
                       </div>
-                      <div style={{ fontSize: '13px', color: fugiu ? '#f44336' : '#4caf50' }}>
+                      <div style={{ fontSize: '0.875rem', color: '#444', marginBottom: '4px' }}>
+                        Tecnologia: {formatTrackingTechnology(animal)}
+                      </div>
+                      {animal.bateria !== undefined && (
+                        <div style={{ fontSize: '0.875rem', color: '#444', marginBottom: '4px' }}>
+                          Bateria: {animal.bateria}%
+                        </div>
+                      )}
+                      <div style={{ fontSize: '0.8125rem', color: fugiu ? '#f44336' : '#4caf50' }}>
                         Pasto: {animal.pastoAtual} {fugiu ? '(Fugiu! Autorizado: ' + animal.pastoAutorizado + ')' : ''}
                       </div>
                     </div>
@@ -407,7 +525,7 @@ export default function Monitoramento() {
 
       {modalAberto && itemEditando && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
-          <div style={{ position: 'relative', background: 'white', padding: '30px', borderRadius: '15px', width: '90%', maxWidth: '400px' }}>
+          <div style={{ position: 'relative', background: 'white', padding: '20px', borderRadius: '15px', width: '100%', maxWidth: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
             <Button
               type="button"
               onClick={handleFecharModal}
