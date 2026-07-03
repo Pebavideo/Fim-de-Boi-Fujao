@@ -6,11 +6,16 @@ declare module 'react-leaflet-draw' {
     onEdited?: (e: any) => void;
     onDeleted?: () => void;
     draw?: {
+      polygon?: boolean;
       rectangle?: boolean;
       marker?: boolean;
       circlemarker?: boolean;
       polyline?: boolean;
       circle?: boolean;
+    };
+    edit?: {
+      edit?: boolean;
+      remove?: boolean;
     };
   }
 

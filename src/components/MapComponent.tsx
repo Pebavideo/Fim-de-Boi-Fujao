@@ -16,10 +16,21 @@ L.Icon.Default.mergeOptions({
 interface MapComponentProps {
   onPolygonCreated: (polygon: L.Polygon | null) => void;
   initialPolygon?: L.Polygon | null;
+  drawEnabled?: boolean;
+  draw?: {
+    polygon?: boolean;
+    rectangle?: boolean;
+    marker?: boolean;
+    circlemarker?: boolean;
+    polyline?: boolean;
+    circle?: boolean;
+  };
+  center?: [number, number];
+  zoom?: number;
   children?: React.ReactNode;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ onPolygonCreated, initialPolygon, children }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ onPolygonCreated, initialPolygon, drawEnabled = true, draw, center = [-15.7801, -47.9292], zoom = 4, children }) => {
   const featureGroupRef = useRef<L.FeatureGroup | null>(null);
 
   const onCreated = (e: any) => {
@@ -41,6 +52,20 @@ const MapComponent: React.FC<MapComponentProps> = ({ onPolygonCreated, initialPo
     onPolygonCreated(null);
   };
 
+  const drawOptions: any = draw ?? {
+    polygon: drawEnabled,
+    rectangle: false,
+    marker: false,
+    circlemarker: false,
+    polyline: false,
+    circle: false,
+  };
+
+  const editOptions: any = {
+    edit: drawEnabled,
+    remove: drawEnabled,
+  };
+
   useEffect(() => {
     const mapInstance = featureGroupRef.current ? ((featureGroupRef.current as any)._map as L.Map | null) : null;
     if (mapInstance && initialPolygon && featureGroupRef.current) {
@@ -52,8 +77,8 @@ const MapComponent: React.FC<MapComponentProps> = ({ onPolygonCreated, initialPo
 
   return (
     <MapContainer
-      center={[-15.7801, -47.9292]}
-      zoom={4}
+      center={center}
+      zoom={zoom}
       style={{ height: '400px', width: '100%' }}
     >
       <TileLayer
@@ -67,18 +92,8 @@ const MapComponent: React.FC<MapComponentProps> = ({ onPolygonCreated, initialPo
           onCreated={onCreated}
           onEdited={onEdited}
           onDeleted={onDeleted}
-          draw={{
-            polygon: true,
-            rectangle: false,
-            marker: false,
-            circlemarker: false,
-            polyline: false,
-            circle: false,
-          }}
-          edit={{
-            edit: true,
-            remove: true,
-          }}
+          draw={drawOptions}
+          edit={editOptions}
         />
       </FeatureGroup>
     </MapContainer>

@@ -22,7 +22,11 @@ export default function GestaoPastos() {
   const [lotesDisponiveis, setLotesDisponiveis] = useState<LoteDisponivel[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [novoPastoNome, setNovoPastoNome] = useState('');
+  const [nomeLote, setNomeLote] = useState('');
+  const [quantidadeCabecasInput, setQuantidadeCabecasInput] = useState('');
   const [novoPastoPolygon, setNovoPastoPolygon] = useState<number[][] | undefined>(undefined);
+  const [selectedPastoPolygon, setSelectedPastoPolygon] = useState<L.Polygon | null>(null);
+  const [mensagemBuscaPasto, setMensagemBuscaPasto] = useState<string | null>(null);
 
   const handleCriarPasto = async () => {
     const user = auth.currentUser;
@@ -33,6 +37,11 @@ export default function GestaoPastos() {
 
     if (!novoPastoNome || !novoPastoPolygon) {
       alert('Por favor, selecione um lote válido e desenhe o polígono.');
+      return;
+    }
+
+    if (!nomeLote.trim() || !quantidadeCabecasInput.trim()) {
+      alert('Por favor, preencha o Nome do Lote e a Quantidade de Cabeças antes de salvar.');
       return;
     }
 
@@ -124,6 +133,26 @@ export default function GestaoPastos() {
     carregarPastos();
   }, []);
 
+  const handleBuscarPasto = () => {
+    const loteSelecionado = lotesDisponiveis.find((lote) => lote.nome === novoPastoNome);
+    if (!loteSelecionado) {
+      setMensagemBuscaPasto('Lote não encontrado');
+      setSelectedPastoPolygon(null);
+      return;
+    }
+
+    const pastoEncontrado = pastos.find((pasto) => pasto.nome === loteSelecionado.nome);
+    if (!pastoEncontrado?.polygon?.length) {
+      setMensagemBuscaPasto('Lote não encontrado');
+      setSelectedPastoPolygon(null);
+      return;
+    }
+
+    const polygon = L.polygon(pastoEncontrado.polygon as [number, number][]);
+    setSelectedPastoPolygon(polygon);
+    setMensagemBuscaPasto(null);
+  };
+
   return (
     <LayoutPadrao>
       <div style={{ marginBottom: '20px' }}>
@@ -137,24 +166,58 @@ export default function GestaoPastos() {
         <h3>Cadastrar Novo Pasto</h3>
         <div style={{ marginBottom: '10px' }}>
           <label style={{ display: 'block', marginBottom: '8px', color: '#444' }}>Selecione o lote cadastrado em Animais</label>
-          <select
-            value={novoPastoNome}
-            onChange={(e) => setNovoPastoNome(e.target.value)}
-            style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ddd', backgroundColor: '#fff' }}
-          >
-            <option value="">Escolha um lote</option>
-            {lotesDisponiveis.map((lote) => (
-              <option key={lote.nome} value={lote.nome}>
-                {lote.nome} ({lote.quantidadeCabecas} cabeças)
-              </option>
-            ))}
-          </select>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
+            <select
+              value={novoPastoNome}
+              onChange={(e) => setNovoPastoNome(e.target.value)}
+              style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ddd', backgroundColor: '#fff' }}
+            >
+              <option value="">Escolha um lote</option>
+              {lotesDisponiveis.map((lote) => (
+                <option key={lote.nome} value={lote.nome}>
+                  {lote.nome} ({lote.quantidadeCabecas} cabeças)
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleBuscarPasto}
+              style={{ padding: '10px 18px', borderRadius: '8px', border: 'none', backgroundColor: '#1a73e8', color: 'white', cursor: 'pointer' }}
+            >
+              BUSCAR LOTE
+            </button>
+          </div>
+          {mensagemBuscaPasto && (
+            <div style={{ color: '#a00', fontSize: '14px', marginTop: '10px' }}>{mensagemBuscaPasto}</div>
+          )}
+        </div>
           {novoPastoNome && (
             <div style={{ marginBottom: '12px', color: '#555', fontSize: '14px' }}>
               <div><strong>Nome do Lote/Pasto:</strong> {novoPastoNome}</div>
               <div><strong>Quantidade de Cabeças:</strong> {lotesDisponiveis.find((lote) => lote.nome === novoPastoNome)?.quantidadeCabecas ?? 0}</div>
             </div>
           )}
+
+          <div style={{ display: 'grid', gap: '12px', marginBottom: '20px' }}>
+            <label style={{ display: 'block', color: '#444', fontWeight: 600 }}>Nome do Lote</label>
+            <input
+              type="text"
+              value={nomeLote}
+              onChange={(e) => setNomeLote(e.target.value)}
+              placeholder="Informe o nome do lote"
+              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd' }}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gap: '12px', marginBottom: '20px' }}>
+            <label style={{ display: 'block', color: '#444', fontWeight: 600 }}>Quantidade de Cabeças</label>
+            <input
+              type="number"
+              value={quantidadeCabecasInput}
+              onChange={(e) => setQuantidadeCabecasInput(e.target.value)}
+              placeholder="Informe a quantidade de cabeças"
+              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd' }}
+            />
+          </div>
           {!lotesDisponiveis.length && (
             <div style={{ color: '#a00', fontSize: '14px' }}>
               Nenhum lote encontrado em Animais. Cadastre ao menos um animal com lote para liberar a criação de pasto.
@@ -162,15 +225,18 @@ export default function GestaoPastos() {
           )}
         </div>
         <div style={{ height: '400px', marginBottom: '10px' }}>
-          <MapComponent onPolygonCreated={(polygon) => {
-            if (polygon) {
-              const latLngs = polygon.getLatLngs() as L.LatLng[][];
-              const coords = (latLngs[0] ?? []).map((latlng) => [latlng.lat, latlng.lng]);
-              setNovoPastoPolygon(coords);
-            } else {
-              setNovoPastoPolygon(undefined);
-            }
-          }} />
+          <MapComponent
+            initialPolygon={selectedPastoPolygon}
+            onPolygonCreated={(polygon) => {
+              if (polygon) {
+                const latLngs = polygon.getLatLngs() as L.LatLng[][];
+                const coords = (latLngs[0] ?? []).map((latlng) => [latlng.lat, latlng.lng]);
+                setNovoPastoPolygon(coords);
+              } else {
+                setNovoPastoPolygon(undefined);
+              }
+            }}
+          />
         </div>
         <button
           onClick={handleCriarPasto}
@@ -187,7 +253,6 @@ export default function GestaoPastos() {
         >
           Salvar Pasto
         </button>
-      </div>
 
       {carregando ? (
         <p>Carregando pastos...</p>

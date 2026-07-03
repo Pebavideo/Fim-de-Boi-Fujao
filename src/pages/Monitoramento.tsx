@@ -8,6 +8,7 @@ import { verificarPosicao } from '../utils/geofencing';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import LayoutPadrao from '../components/LayoutPadrao';
+import MapComponent from '../components/MapComponent';
 
 interface DadosLojista {
   nome: string;
@@ -62,6 +63,7 @@ export default function Monitoramento() {
   const [todosAnimais, setTodosAnimais] = useState<Animal[]>([]);
   const [pastos, setPastos] = useState<PastoData[]>([]);
   const [pastosCarregando, setPastosCarregando] = useState(true);
+  const [animaisConsultando, setAnimaisConsultando] = useState(false);
   const [geofenceAlerts, setGeofenceAlerts] = useState<{ animalId: string; idBrinco: string; status: 'outside' | 'no-signal' | 'nopasto' | 'nopolygon' | 'inside'; message: string; }[]>([]);
   const [pastoSelecionado, setPastoSelecionado] = useState('');
   const [filtroBusca, setFiltroBusca] = useState('');
@@ -76,6 +78,7 @@ export default function Monitoramento() {
   const carregarPrimeirosAnimais = async () => {
     const user = auth.currentUser;
     if (user?.email) {
+      setAnimaisConsultando(true);
       const animaisRef = collection(db, 'animais');
       const q = query(
         animaisRef, 
@@ -83,20 +86,31 @@ export default function Monitoramento() {
         orderBy('dataCadastro', 'desc'), 
         limit(20)
       );
-      const animaisSnap = await getDocs(q);
-      
-      const animaisList = animaisSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Animal[];
-      
-      setTodosAnimais(animaisList);
-      
-      if (animaisSnap.docs.length === 20) {
-        setUltimoDoc(animaisSnap.docs[animaisSnap.docs.length - 1]);
-        setTemMais(true);
-      } else {
-        setTemMais(false);
+
+      try {
+        console.log('[Monitoramento] consultando coleção de animais no Firestore');
+        const animaisSnap = await getDocs(q);
+        if (animaisSnap.empty) {
+          console.log('Coleção de animais vazia ou inacessível no Firestore.');
+        }
+        const animaisList = animaisSnap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Animal[];
+        
+        setTodosAnimais(animaisList);
+        
+        if (animaisSnap.docs.length === 20) {
+          setUltimoDoc(animaisSnap.docs[animaisSnap.docs.length - 1]);
+          setTemMais(true);
+        } else {
+          setTemMais(false);
+        }
+      } catch (error) {
+        console.log('Coleção de animais vazia ou inacessível no Firestore.');
+        console.error('Erro ao consultar animais:', error);
+      } finally {
+        setAnimaisConsultando(false);
       }
     }
   };
@@ -157,6 +171,23 @@ export default function Monitoramento() {
     } finally {
       setPastosCarregando(false);
     }
+  };
+
+  const parseLocationCoordinates = (location?: string): [number, number] | null => {
+    if (!location) return null;
+    const parts = location.split(/[,;\s]+/).map((part) => part.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      const lat = parseFloat(parts[0]);
+      const lng = parseFloat(parts[1]);
+      if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+        return [lat, lng];
+      }
+    }
+    return null;
+  };
+
+  const getFarmCenter = (): [number, number] => {
+    return parseLocationCoordinates(dadosLojista?.localizacao) ?? [-15.7801, -47.9292];
   };
 
   useEffect(() => {
@@ -406,11 +437,26 @@ export default function Monitoramento() {
         </div>
       )}
 
+      {animaisConsultando && !carregando && (
+        <p>Consultando animais...</p>
+      )}
+
       {carregando ? (
         <p>Carregando dados...</p>
       ) : !todosAnimais.length ? (
-        <div style={{ padding: '20px 0', color: '#666', fontSize: '1rem' }}>
-          Nenhum animal cadastrado no momento.
+        <div style={{ display: 'grid', gap: '20px', padding: '20px 0' }}>
+          <div style={{ background: 'white', borderRadius: '18px', border: '1px solid #dce4f5', padding: '28px', boxShadow: '0 14px 32px rgba(0,0,0,0.08)', zIndex: 1000 }}>
+            <h2 style={{ margin: '0 0 12px', color: '#1a73e8' }}>Nenhum animal cadastrado no sistema</h2>
+            <p style={{ margin: '0 0 20px', color: '#555', lineHeight: 1.6 }}>
+              Clique abaixo para cadastrar seu primeiro animal e começar a monitorar sua fazenda.
+            </p>
+            <Button onClick={() => navigate('/cadastro-animais')} className="btn-responsivo" style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '12px 18px', borderRadius: '10px', fontWeight: 'bold' }}>
+              Cadastrar seu primeiro animal
+            </Button>
+          </div>
+          <div style={{ width: '100%', minHeight: '400px', borderRadius: '18px', overflow: 'hidden', border: '1px solid #dce4f5' }}>
+            <MapComponent onPolygonCreated={() => {}} drawEnabled={false} center={getFarmCenter()} zoom={12} />
+          </div>
         </div>
       ) : dadosLojista ? (
         <>

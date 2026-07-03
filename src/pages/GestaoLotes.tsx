@@ -5,6 +5,7 @@ import { collection, getDocs, query, where, doc, updateDoc, addDoc, deleteDoc } 
 import LayoutPadrao from '../components/LayoutPadrao';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import MapComponent from '../components/MapComponent';
 
 interface LoteData {
   id: string;
@@ -35,6 +36,9 @@ export default function GestaoLotes() {
   const [buscaLote, setBuscaLote] = useState('');
   const [buscaBrinco, setBuscaBrinco] = useState('');
   const [mensagem, setMensagem] = useState<string | null>(null);
+  const [selectedLoteId, setSelectedLoteId] = useState<string | null>(null);
+  const [selectedLoteOption, setSelectedLoteOption] = useState<string>('');
+  const [showMap, setShowMap] = useState(false);
 
   const pesoTotal = qtdCabecas * pesoPorCabeca;
   const pesoTotalFormatado = pesoTotal.toLocaleString('pt-BR');
@@ -84,59 +88,77 @@ export default function GestaoLotes() {
     setObservacoes('');
     setBuscaLote('');
     setBuscaBrinco('');
+    setSelectedLoteOption('');
     setMensagem(null);
+    setShowMap(false);
+    setSelectedLoteId(null);
   };
 
   const handleBuscarLoteEnter = async (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      const loteEncontrado = lotes.find(l => 
-        (l.nome_lote || '').toLowerCase() === buscaLote.toLowerCase()
+      await handleBuscarLote();
+    }
+  };
+
+  const handleBuscarLote = async () => {
+    const filtro = selectedLoteOption || buscaLote;
+    const loteEncontrado = lotes.find(l => 
+      (l.nome_lote || '').toLowerCase() === filtro.toLowerCase().trim()
+    );
+
+    if (loteEncontrado) {
+      await handleSelecionarLote(loteEncontrado.id);
+      setSelectedLoteId(loteEncontrado.id);
+      setShowMap(true);
+      setMensagem(null);
+    } else {
+      setMensagem('Lote não encontrado');
+      setSelectedLoteId(null);
+      setShowMap(false);
+      setTimeout(() => setMensagem(null), 3000);
+    }
+  };
+
+  const handleBuscarBrinco = async () => {
+    const user = auth.currentUser;
+    if (!user?.email) return;
+
+    try {
+      const animaisRef = collection(db, 'animais');
+      const q = query(
+        animaisRef,
+        where('emailDono', '==', user.email),
+        where('idBrinco', '==', buscaBrinco.trim())
       );
-      if (loteEncontrado) {
-        await handleSelecionarLote(loteEncontrado.id);
+      const snapshot = await getDocs(q);
+
+      if (!snapshot.empty) {
+        const docData = snapshot.docs[0].data();
+        setAnimalId(snapshot.docs[0].id);
+        setNomeFazenda(docData.nomeFazenda || '');
+        setIdBrinco(docData.idBrinco || '');
+        setCategoria(docData.categoria || '');
+        setOrigem(docData.origem || '');
+        setDataNascimento(docData.dataNascimento || '');
+        setPastoAutorizado(docData.pastoAutorizado || '');
+        setLote(docData.lote || '');
+        setQtdCabecas(docData.qtdCabecas || 0);
+        setPesoPorCabeca(docData.pesoPorCabeca || 0);
+        setVacinasMedicamentos(docData.vacinasMedicamentos || '');
+        setObservacoes(docData.observacoes || '');
+        setMensagem(null);
       } else {
-        setMensagem('Lote não encontrado');
+        setMensagem('Animal não encontrado');
         setTimeout(() => setMensagem(null), 3000);
       }
+    } catch (error) {
+      console.error('Erro ao buscar animal:', error);
     }
   };
 
   const handleBuscarBrincoEnter = async (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      const user = auth.currentUser;
-      if (!user?.email) return;
-
-      try {
-        const animaisRef = collection(db, 'animais');
-        const q = query(
-          animaisRef,
-          where('emailDono', '==', user.email),
-          where('idBrinco', '==', buscaBrinco.trim())
-        );
-        const snapshot = await getDocs(q);
-
-        if (!snapshot.empty) {
-          const docData = snapshot.docs[0].data();
-          setAnimalId(snapshot.docs[0].id);
-          setNomeFazenda(docData.nomeFazenda || '');
-          setIdBrinco(docData.idBrinco || '');
-          setCategoria(docData.categoria || '');
-          setOrigem(docData.origem || '');
-          setDataNascimento(docData.dataNascimento || '');
-          setPastoAutorizado(docData.pastoAutorizado || '');
-          setLote(docData.lote || '');
-          setQtdCabecas(docData.qtdCabecas || 0);
-          setPesoPorCabeca(docData.pesoPorCabeca || 0);
-          setVacinasMedicamentos(docData.vacinasMedicamentos || '');
-          setObservacoes(docData.observacoes || '');
-          setMensagem(null);
-        } else {
-          setMensagem('Animal não encontrado');
-          setTimeout(() => setMensagem(null), 3000);
-        }
-      } catch (error) {
-        console.error('Erro ao buscar animal:', error);
-      }
+      await handleBuscarBrinco();
     }
   };
 
@@ -144,40 +166,45 @@ export default function GestaoLotes() {
     const loteEncontrado = lotes.find(l => l.id === loteId);
     if (!loteEncontrado) return;
 
+    setSelectedLoteId(loteEncontrado.id);
+    setLote(loteEncontrado.nome_lote);
+    setSelectedLoteOption(loteEncontrado.nome_lote);
+    setMensagem(null);
+    setShowMap(true);
+
     const user = auth.currentUser;
-    if (user?.email) {
-      try {
-        const animaisRef = collection(db, 'animais');
-        const q = query(
-          animaisRef,
-          where('emailDono', '==', user.email),
-          where('lote', '==', loteEncontrado.nome_lote)
-        );
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-          const docData = snapshot.docs[0].data();
-          setAnimalId(snapshot.docs[0].id);
-          setNomeFazenda(docData.nomeFazenda || '');
-          setIdBrinco(docData.idBrinco || '');
-          setCategoria(docData.categoria || '');
-          setOrigem(docData.origem || '');
-          setDataNascimento(docData.dataNascimento || '');
-          setPastoAutorizado(docData.pastoAutorizado || '');
-          setLote(docData.lote || loteEncontrado.nome_lote);
-          setQtdCabecas(docData.qtdCabecas || loteEncontrado.animais.length || 0);
-          setPesoPorCabeca(docData.pesoPorCabeca || 0);
-          setVacinasMedicamentos(docData.vacinasMedicamentos || '');
-          setObservacoes(docData.observacoes || '');
-        } else {
-          setAnimalId(null);
-          setLote(loteEncontrado.nome_lote);
-          setQtdCabecas(loteEncontrado.animais.length || 0);
-        }
-      } catch (error) {
-        console.error('Erro ao carregar dados do lote:', error);
-        setLote(loteEncontrado.nome_lote);
+    if (!user?.email) return;
+
+    try {
+      const animaisRef = collection(db, 'animais');
+      const q = query(
+        animaisRef,
+        where('emailDono', '==', user.email),
+        where('lote', '==', loteEncontrado.nome_lote)
+      );
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        const docData = snapshot.docs[0].data();
+        setAnimalId(snapshot.docs[0].id);
+        setNomeFazenda(docData.nomeFazenda || '');
+        setIdBrinco(docData.idBrinco || '');
+        setCategoria(docData.categoria || '');
+        setOrigem(docData.origem || '');
+        setDataNascimento(docData.dataNascimento || '');
+        setPastoAutorizado(docData.pastoAutorizado || '');
+        setLote(docData.lote || loteEncontrado.nome_lote);
+        setQtdCabecas(docData.qtdCabecas || loteEncontrado.animais.length || 0);
+        setPesoPorCabeca(docData.pesoPorCabeca || 0);
+        setVacinasMedicamentos(docData.vacinasMedicamentos || '');
+        setObservacoes(docData.observacoes || '');
+      } else {
+        setAnimalId(null);
         setQtdCabecas(loteEncontrado.animais.length || 0);
       }
+    } catch (error) {
+      console.error('Erro ao carregar dados do lote:', error);
+      setAnimalId(null);
+      setQtdCabecas(loteEncontrado.animais.length || 0);
     }
   };
 
@@ -315,25 +342,81 @@ export default function GestaoLotes() {
               <h3 style={{ marginTop: 0, marginBottom: '15px' }}>Buscar</h3>
               
               <div style={{ marginBottom: '15px' }}>
-                <Input
-                  type="text"
-                  value={buscaLote}
-                  onChange={(e) => setBuscaLote(e.target.value)}
-                  onKeyDown={handleBuscarLoteEnter}
-                  className="campo"
-                  placeholder="Buscar Lote"
-                />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <select
+                    value={selectedLoteOption}
+                    onChange={(e) => {
+                      setSelectedLoteOption(e.target.value);
+                      setBuscaLote(e.target.value);
+                    }}
+                    style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #dce4f5', background: 'white' }}
+                  >
+                    <option value="">Selecionar lote</option>
+                    {lotes.map((loteItem) => (
+                      <option key={loteItem.id} value={loteItem.nome_lote}>
+                        {loteItem.nome_lote}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={handleBuscarLote}
+                    style={{ minWidth: '140px', backgroundColor: '#1a73e8', color: 'white', border: 'none', borderRadius: '8px', padding: '12px 14px', cursor: 'pointer' }}
+                  >
+                    BUSCAR LOTE
+                  </button>
+                </div>
+              </div>
+              <div style={{ marginBottom: '15px' }}>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <Input
+                    type="text"
+                    value={buscaLote}
+                    onChange={(e) => setBuscaLote(e.target.value)}
+                    onKeyDown={handleBuscarLoteEnter}
+                    className="campo"
+                    placeholder="Buscar por nome do lote"
+                    style={{ flex: 1 }}
+                  />
+                  <button
+                    onClick={handleBuscarLote}
+                    style={{ minWidth: '120px', backgroundColor: '#1a73e8', color: 'white', border: 'none', borderRadius: '8px', padding: '12px 14px', cursor: 'pointer' }}
+                  >
+                    CARREGAR
+                  </button>
+                </div>
               </div>
 
               <div style={{ marginBottom: '15px' }}>
-                <Input
-                  type="text"
-                  value={buscaBrinco}
-                  onChange={(e) => setBuscaBrinco(e.target.value)}
-                  onKeyDown={handleBuscarBrincoEnter}
-                  className="campo"
-                  placeholder="Buscar por Brinco"
-                />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <Input
+                    type="text"
+                    value={buscaBrinco}
+                    onChange={(e) => setBuscaBrinco(e.target.value)}
+                    onKeyDown={handleBuscarBrincoEnter}
+                    className="campo"
+                    placeholder="Buscar por Brinco"
+                    style={{ flex: 1 }}
+                  />
+                  <button
+                    onClick={handleBuscarBrinco}
+                    style={{ minWidth: '120px', backgroundColor: '#1a73e8', color: 'white', border: 'none', borderRadius: '8px', padding: '12px 14px', cursor: 'pointer' }}
+                  >
+                    BUSCAR BRINCO
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                {showMap && selectedLoteId ? (
+                  <MapComponent
+                    drawEnabled={Boolean(selectedLoteId)}
+                    onPolygonCreated={() => {}}
+                  />
+                ) : (
+                  <div style={{ minHeight: '400px', border: '1px dashed #d1d5db', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', color: '#4b5563', background: '#f8fafc' }}>
+                    Selecione um lote e clique em BUSCAR LOTE para carregar o mapa e habilitar o desenho.
+                  </div>
+                )}
               </div>
 
               <div style={{ maxHeight: '350px', overflowY: 'auto', marginBottom: '15px' }}>

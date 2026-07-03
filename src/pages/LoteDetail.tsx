@@ -53,11 +53,15 @@ export default function LoteDetail() {
   const [sisbovMap, setSisbovMap] = useState<Record<string, string>>({});
   const [confirmacaoSanitaria, setConfirmacaoSanitaria] = useState(false);
   const [lotesVazios, setLotesVazios] = useState(false);
+  const [loteNaoEncontrado, setLoteNaoEncontrado] = useState(false);
 
   useEffect(() => {
     const carregarDados = async () => {
+      setLoteNaoEncontrado(false);
+      console.log('[LoteDetail] iniciando busca de lote', { id, collection: 'lotes' });
       const user = auth.currentUser;
       if (!user?.email) {
+        console.log('[LoteDetail] usuário não autenticado, abortando busca de lote');
         setLoading(false);
         return;
       }
@@ -66,28 +70,40 @@ export default function LoteDetail() {
         const lotesRef = collection(db, 'lotes');
         const lotesSnap = await getDocs(lotesRef);
         const estaVazio = lotesSnap.empty;
-        console.log('Lotes collection empty?', estaVazio);
+        console.log('[LoteDetail] coleção consultada', { collection: 'lotes', empty: estaVazio });
         setLotesVazios(estaVazio);
 
         if (estaVazio) {
+          console.log('[LoteDetail] coleção de lotes vazia, id buscado:', id);
+          setLoteNaoEncontrado(true);
           setLoading(false);
           return;
         }
 
-        // Se id não for passado, tentar carregar por busca (mas por enquanto, segue o fluxo original)
-        if (id) {
-          // Carregar lote
-          const loteRef = doc(db, 'lotes', id);
-          const loteSnap = await getDoc(loteRef);
-          if (!loteSnap.exists()) {
-            setLoading(false);
-            return;
-          }
+        if (!id) {
+          console.log('[LoteDetail] nenhum id de lote fornecido na URL');
+          setLoteNaoEncontrado(true);
+          setLoading(false);
+          return;
+        }
 
-          const loteData = { id: loteSnap.id, ...loteSnap.data() } as LoteData;
+        // Carregar lote
+        const loteRef = doc(db, 'lotes', id);
+        console.log('[LoteDetail] buscando documento de lote', { id, collection: 'lotes' });
+        const loteSnap = await getDoc(loteRef);
+        if (!loteSnap.exists()) {
+          console.log('[LoteDetail] lote não encontrado', { id, collection: 'lotes' });
+          setLoteNaoEncontrado(true);
+          setLoading(false);
+          return;
+        }
+
+        const loteData = { id: loteSnap.id, ...loteSnap.data() } as LoteData;
           
           // Verificar se o lote pertence ao usuário
           if (loteData.emailDono !== user.email) {
+            console.log('[LoteDetail] lote pertence a outro usuário', { loteId: id, owner: loteData.emailDono, currentUser: user.email });
+            setLoteNaoEncontrado(true);
             setLoading(false);
             return;
           }
@@ -120,7 +136,6 @@ export default function LoteDetail() {
             }
           });
           setSisbovMap(initialSisbovMap);
-        }
       } catch (error) {
         console.error('Erro ao carregar lote:', error);
       } finally {
@@ -209,7 +224,7 @@ export default function LoteDetail() {
         )
       } : null);
       
-      alert('Certificado finalizado e emitido com sucesso!');
+      alert(`Certificado assinado eletronicamente com sucesso por ${nomeResponsavelTecnico}!`);
     } catch (error) {
       console.error('Erro ao finalizar certificado:', error);
       alert('Erro ao finalizar certificado.');
@@ -267,6 +282,23 @@ export default function LoteDetail() {
           <p style={{ color: '#555', fontSize: '1rem', lineHeight: '1.6' }}>
             Por favor, acesse a área de cadastro para iniciar.
           </p>
+        </div>
+      </LayoutPadrao>
+    );
+  }
+  if (!lote && loteNaoEncontrado) {
+    return (
+      <LayoutPadrao>
+        <div style={{ padding: '20px', maxWidth: '700px', margin: '0 auto' }}>
+          <div style={{ background: 'white', border: '1px solid #dce4f5', borderRadius: '18px', padding: '30px', boxShadow: '0 12px 24px rgba(0,0,0,0.08)', zIndex: 1000 }}>
+            <h2 style={{ margin: '0 0 12px', color: '#1a73e8' }}>Lote não encontrado</h2>
+            <p style={{ color: '#444', lineHeight: '1.6', marginBottom: '24px' }}>
+              O sistema tentou buscar o lote pelo ID fornecido na URL na coleção <strong>lotes</strong>, mas não encontrou um registro válido.
+            </p>
+            <Button onClick={() => navigate('/gestao-lotes')} className="btn-responsivo" style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '12px 18px', borderRadius: '10px', fontWeight: 'bold' }}>
+              CADASTRAR LOTE
+            </Button>
+          </div>
         </div>
       </LayoutPadrao>
     );
@@ -408,20 +440,22 @@ export default function LoteDetail() {
               Reabrir Certificado para Edições
             </Button>
           ) : (
-            <Button 
-              onClick={handleFinalizarCertificado} 
-              className="btn-responsivo" 
-              style={{ 
-                background: '#4CAF50', 
-                color: 'white', 
-                border: 'none', 
-                padding: '12px 20px', 
-                borderRadius: '10px', 
-                fontWeight: 'bold'
-              }}
-            >
-              Finalizar e Emitir Certificado
-            </Button>
+            nomeResponsavelTecnico.trim() && crmv.trim() && gta.trim() ? (
+              <Button 
+                onClick={handleFinalizarCertificado} 
+                className="btn-responsivo" 
+                style={{ 
+                  background: '#4CAF50', 
+                  color: 'white', 
+                  border: 'none', 
+                  padding: '12px 20px', 
+                  borderRadius: '10px', 
+                  fontWeight: 'bold'
+                }}
+              >
+                IMPRIMIR/ASSINAR CERTIFICADO
+              </Button>
+            ) : null
           )}
         </div>
       </div>
