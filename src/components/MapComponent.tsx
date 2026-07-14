@@ -14,8 +14,8 @@ L.Icon.Default.mergeOptions({
 });
 
 interface MapComponentProps {
-  onPolygonCreated: (polygon: L.Polygon | null) => void;
-  initialPolygon?: L.Polygon | null;
+  onPolygonCreated: (polygonCoords: number[][] | null) => void;
+  initialPolygon?: number[][] | null;
   drawEnabled?: boolean;
   draw?: {
     polygon?: boolean;
@@ -33,17 +33,22 @@ interface MapComponentProps {
 const MapComponent: React.FC<MapComponentProps> = ({ onPolygonCreated, initialPolygon, drawEnabled = true, draw, center = [-15.7801, -47.9292], zoom = 4, children }) => {
   const featureGroupRef = useRef<L.FeatureGroup | null>(null);
 
+  const polygonToCoords = (polygon: L.Polygon): number[][] => {
+    const latLngs = polygon.getLatLngs() as L.LatLng[][];
+    return (latLngs[0] ?? []).map(({ lat, lng }) => [lat, lng]);
+  };
+
   const onCreated = (e: any) => {
     const { layerType, layer } = e;
     if (layerType === 'polygon') {
-      onPolygonCreated(layer as L.Polygon);
+      onPolygonCreated(polygonToCoords(layer as L.Polygon));
     }
   };
 
   const onEdited = (e: any) => {
     e.layers.eachLayer((layer: L.Layer) => {
       if (layer instanceof L.Polygon) {
-        onPolygonCreated(layer);
+        onPolygonCreated(polygonToCoords(layer));
       }
     });
   };
@@ -68,10 +73,11 @@ const MapComponent: React.FC<MapComponentProps> = ({ onPolygonCreated, initialPo
 
   useEffect(() => {
     const mapInstance = featureGroupRef.current ? ((featureGroupRef.current as any)._map as L.Map | null) : null;
-    if (mapInstance && initialPolygon && featureGroupRef.current) {
+    if (mapInstance && initialPolygon && initialPolygon.length && featureGroupRef.current) {
       featureGroupRef.current.clearLayers();
-      initialPolygon.addTo(featureGroupRef.current);
-      mapInstance.fitBounds(initialPolygon.getBounds());
+      const polygon = L.polygon(initialPolygon as [number, number][]);
+      polygon.addTo(featureGroupRef.current);
+      mapInstance.fitBounds(polygon.getBounds());
     }
   }, [initialPolygon]);
 
