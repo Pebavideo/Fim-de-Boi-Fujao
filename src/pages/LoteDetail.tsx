@@ -340,7 +340,8 @@ export default function LoteDetail() {
           }
           .input-field {
             width: 100%;
-            padding: 10px 14px;
+            min-height: 44px;
+            padding: 12px 14px;
             border: 1.5px solid var(--color-border);
             border-radius: var(--radius-sm);
             font-size: 16px;

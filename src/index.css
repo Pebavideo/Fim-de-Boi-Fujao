@@ -176,6 +176,13 @@ a:focus-visible {
 }
 button:disabled { cursor: not-allowed; opacity: 0.65; transform: none !important; }
 
+/* Alvo de toque confortável para botões-ícone (fechar, "x", etc.),
+   independente de largura/altura fixadas inline em cada tela. */
+button[aria-label] {
+  min-width: 44px;
+  min-height: 44px;
+}
+
 .btn-acao {
   border: none;
   padding: 6px 10px;
@@ -264,5 +271,32 @@ li {
     width: 100% !important;
     max-width: 100% !important;
     min-height: 100vh;
+  }
+
+  /* Alvo de toque confortável (>=44px) para todos os botões, campos
+     e seletores em telas de celular/tablet, mesmo os que não usam
+     .btn-responsivo ou o componente <Button>. */
+  button {
+    min-height: 44px;
+  }
+  .campo,
+  select,
+  input,
+  textarea {
+    min-height: 44px;
+  }
+  textarea.campo {
+    min-height: 80px;
+  }
+
+  /* Espaçamento mínimo entre alvos clicáveis adjacentes */
+  li {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-card {
+    padding: 24px 18px;
   }
 }

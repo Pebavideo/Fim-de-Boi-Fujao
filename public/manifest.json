@@ -1,21 +1,38 @@
 {
   "name": "Fim de Boi Fujao",
-  "short_name": "Fim de Boi Fujao",
+  "short_name": "Boi Fujão",
+  "description": "Monitoramento inteligente da sua fazenda: gado, pastos, geofencing e rastreabilidade.",
   "theme_color": "#1a73e8",
-  "background_color": "#f0f2f5",
+  "background_color": "#f2f5fb",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "scope": "/",
   "start_url": "/",
+  "lang": "pt-BR",
   "icons": [
     {
       "src": "/assets/logo192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/assets/logo512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/logo192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/logo512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
