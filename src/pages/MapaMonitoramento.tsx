@@ -5,6 +5,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import LayoutPadrao from '../components/LayoutPadrao';
 import MapComponent from '../components/MapComponent';
 import Button from '../components/Button';
+import { Search, ArrowLeft } from 'lucide-react';
 import { Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -100,23 +101,23 @@ export default function MapaMonitoramento() {
         }
       `}</style>
 
-      <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+      <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', paddingBottom: '20px', borderBottom: '1px solid var(--color-border)' }}>
         <div>
-          <h2>Monitoramento Geográfico</h2>
-          <p style={{ color: '#666', marginTop: '6px' }}>Visualize a localização dos animais em tempo real.</p>
+          <h2 style={{ margin: 0, fontSize: '1.4rem' }}>Monitoramento Geográfico</h2>
+          <p style={{ color: '#5b6577', margin: '8px 0 0' }}>Visualize a localização dos animais em tempo real.</p>
         </div>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ position: 'relative' }}>
-            <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#888' }}>🔍</span>
+            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#8a93a6' }} />
             <input
               type="text"
+              className="campo"
               placeholder="Buscar brinco..."
               value={filtroBrinco}
               onChange={(e) => setFiltroBrinco(e.target.value)}
               style={{
-                padding: '10px 12px 10px 34px',
-                borderRadius: '10px',
-                border: '1px solid #ddd',
+                paddingLeft: '36px',
+                margin: 0,
                 minWidth: '220px'
               }}
             />
@@ -124,7 +125,8 @@ export default function MapaMonitoramento() {
           <select
             value={pastoSelecionado}
             onChange={(e) => setPastoSelecionado(e.target.value)}
-            style={{ padding: '10px 12px', borderRadius: '10px', border: '1px solid #ddd', minWidth: '200px' }}
+            className="campo"
+            style={{ margin: 0, minWidth: '200px' }}
           >
             <option value="">Todos os pastos</option>
             {pastos.map((pasto) => (
@@ -133,16 +135,16 @@ export default function MapaMonitoramento() {
               </option>
             ))}
           </select>
-          <Button onClick={() => navigate('/painel-principal')} className="btn-responsivo" style={{ background: '#9e9e9e', color: 'white', border: 'none', padding: '12px 18px', borderRadius: '10px' }}>
-            Voltar
+          <Button onClick={() => navigate('/painel-principal')} className="btn-responsivo" style={{ background: 'var(--color-surface-alt)', color: '#3a4150', border: '1px solid var(--color-border)', padding: '12px 18px', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
+            <ArrowLeft size={16} /> Voltar
           </Button>
         </div>
       </div>
 
       {loading ? (
-        <p>Carregando dados...</p>
+        <p style={{ color: '#5b6577' }}>Carregando dados...</p>
       ) : (
-        <div style={{ width: '100%', height: '70vh', borderRadius: '15px', overflow: 'hidden' }}>
+        <div style={{ width: '100%', height: '70vh', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
           <MapComponent onPolygonCreated={() => {}}>
             {filteredAnimals.map((animal) => {
               if (!animal.latitude || !animal.longitude) return null;

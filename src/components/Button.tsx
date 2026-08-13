@@ -10,12 +10,14 @@ export default function Button({ children, className, type = 'button', style, ..
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    fontFamily: 'inherit',
   };
 
   const mergedStyle = { ...defaultStyle, ...style } as React.CSSProperties;
+  const mergedClassName = ['btn-interativo', className].filter(Boolean).join(' ');
 
   return (
-    <button type={type} className={className} style={mergedStyle} {...props}>
+    <button type={type} className={mergedClassName} style={mergedStyle} {...props}>
       {children}
     </button>
   );
