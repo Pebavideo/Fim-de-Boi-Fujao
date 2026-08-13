@@ -5,6 +5,7 @@ import { doc, getDoc, collection, onSnapshot, getDocs, updateDoc, deleteDoc, lim
 import { logoutSeguro } from '../utils/auth';
 import { formatTrackingTechnology } from '../utils/VeterinarioModule';
 import { verificarPosicao } from '../utils/geofencing';
+import { LogOut, TriangleAlert, Battery, X, MapPinOff } from 'lucide-react';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import LayoutPadrao from '../components/LayoutPadrao';
@@ -387,21 +388,21 @@ export default function Monitoramento() {
 
   return (
     <LayoutPadrao>
-      <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid #eee', zIndex: 100 }}>
+      <div className="header" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid #e3e8f2' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <h2 style={{ margin: 0 }}>{dadosLojista?.nome || 'Monitoramento'}</h2>
+          <h2 style={{ margin: 0, fontSize: '1.4rem' }}>{dadosLojista?.nome || 'Monitoramento'}</h2>
         </div>
-        <div style={{ display: 'flex', gap: '10px', zIndex: 100 }}>
-          <Button onClick={() => navigate('/painel-principal')} className="btn-responsivo" style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', zIndex: 100 }}>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <Button onClick={() => navigate('/painel-principal')} className="btn-responsivo" style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '10px 18px', borderRadius: '10px', fontWeight: 700 }}>
             Painel Principal
           </Button>
-          <Button onClick={handleLogout} className="btn-responsivo" style={{ fontSize: '12px', color: 'white', background: '#ff4444', border: 'none', padding: '8px 16px', borderRadius: '8px', zIndex: 100 }}>
-            SAIR
+          <Button onClick={handleLogout} className="btn-responsivo" style={{ fontSize: '0.85rem', color: '#dc2626', background: '#fdecec', border: 'none', padding: '10px 18px', borderRadius: '10px', fontWeight: 700 }}>
+            <LogOut size={16} strokeWidth={2.5} /> Sair
           </Button>
         </div>
       </div>
 
-      <div style={{ marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
+      <div style={{ marginBottom: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
         <Input
           type="text"
           placeholder="Buscar por brinco, categoria ou status..."
@@ -413,7 +414,7 @@ export default function Monitoramento() {
           value={pastoSelecionado}
           onChange={(e) => setPastoSelecionado(e.target.value)}
           className="campo"
-          style={{ appearance: 'none', padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '1rem', width: '100%' }}
+          style={{ appearance: 'none', width: '100%' }}
         >
           <option value="">Filtrar por pasto (todos)</option>
           {pastosCarregando ? (
@@ -427,10 +428,12 @@ export default function Monitoramento() {
       </div>
 
       {geofenceAlerts.length > 0 && (
-        <div style={{ marginBottom: '20px', display: 'grid', gap: '12px', padding: '16px', borderRadius: '14px', background: '#fff3f3', border: '1px solid #f5c6cb' }}>
-          <h3 style={{ margin: 0, color: '#c62828', fontSize: '1rem' }}>Alertas de Cerca Virtual</h3>
+        <div style={{ marginBottom: '20px', display: 'grid', gap: '10px', padding: '18px', borderRadius: 'var(--radius-lg)', background: '#fdecec', border: '1px solid #f5c6cb' }}>
+          <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#c62828', fontSize: '1rem' }}>
+            <TriangleAlert size={18} /> Alertas de Cerca Virtual
+          </h3>
           {geofenceAlerts.map((alert) => (
-            <div key={alert.animalId} style={{ background: '#fde7e9', border: '1px solid #f5c6cb', borderRadius: '10px', padding: '12px', color: '#9a1c25', fontSize: '0.95rem' }}>
+            <div key={alert.animalId} style={{ background: 'white', border: '1px solid #f3c6c9', borderRadius: 'var(--radius-sm)', padding: '12px', color: '#9a1c25', fontSize: '0.9rem' }}>
               <strong>{alert.message}</strong>
             </div>
           ))}
@@ -438,73 +441,77 @@ export default function Monitoramento() {
       )}
 
       {animaisConsultando && !carregando && (
-        <p>Consultando animais...</p>
+        <p style={{ color: '#5b6577' }}>Consultando animais...</p>
       )}
 
       {carregando ? (
-        <p>Carregando dados...</p>
+        <p style={{ color: '#5b6577' }}>Carregando dados...</p>
       ) : !todosAnimais.length ? (
         <div style={{ display: 'grid', gap: '20px', padding: '20px 0' }}>
-          <div style={{ background: 'white', borderRadius: '18px', border: '1px solid #dce4f5', padding: '28px', boxShadow: '0 14px 32px rgba(0,0,0,0.08)', zIndex: 1000 }}>
+          <div style={{ background: 'white', borderRadius: 'var(--radius-lg)', border: '1px solid #e3e8f2', padding: '28px', boxShadow: 'var(--shadow-md)' }}>
             <h2 style={{ margin: '0 0 12px', color: '#1a73e8' }}>Nenhum animal cadastrado no sistema</h2>
-            <p style={{ margin: '0 0 20px', color: '#555', lineHeight: 1.6 }}>
+            <p style={{ margin: '0 0 20px', color: '#5b6577', lineHeight: 1.6 }}>
               Clique abaixo para cadastrar seu primeiro animal e começar a monitorar sua fazenda.
             </p>
-            <Button onClick={() => navigate('/cadastro-animais')} className="btn-responsivo" style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '12px 18px', borderRadius: '10px', fontWeight: 'bold' }}>
+            <Button onClick={() => navigate('/cadastro-animais')} className="btn-responsivo" style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '12px 18px', borderRadius: '10px', fontWeight: 700 }}>
               Cadastrar seu primeiro animal
             </Button>
           </div>
-          <div style={{ width: '100%', minHeight: '400px', borderRadius: '18px', overflow: 'hidden', border: '1px solid #dce4f5' }}>
+          <div style={{ width: '100%', minHeight: '400px', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid #e3e8f2' }}>
             <MapComponent onPolygonCreated={() => {}} drawEnabled={false} center={getFarmCenter()} zoom={12} />
           </div>
         </div>
       ) : dadosLojista ? (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px', marginBottom: '20px' }}>
-            <div style={{ background: '#f0f4ff', padding: '15px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001 }}>
-              <label style={{ fontSize: '12px', color: '#666', marginBottom: '5px', display: 'block' }}>Nome</label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', marginBottom: '24px' }}>
+            <div style={{ background: 'var(--color-primary-soft)', padding: '15px', borderRadius: 'var(--radius-md)', border: '1px solid #e3e8f2' }}>
+              <label style={{ fontSize: '12px', color: '#5b6577', marginBottom: '5px', display: 'block', fontWeight: 600 }}>Nome</label>
               <Input type="text" value={dadosLojista.nome} readOnly className="campo" />
             </div>
-            <div style={{ background: '#f0f4ff', padding: '15px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001 }}>
-              <label style={{ fontSize: '12px', color: '#666', marginBottom: '5px', display: 'block' }}>WhatsApp</label>
+            <div style={{ background: 'var(--color-primary-soft)', padding: '15px', borderRadius: 'var(--radius-md)', border: '1px solid #e3e8f2' }}>
+              <label style={{ fontSize: '12px', color: '#5b6577', marginBottom: '5px', display: 'block', fontWeight: 600 }}>WhatsApp</label>
               <Input type="text" value={dadosLojista.whatsapp} readOnly className="campo" />
             </div>
-            <div style={{ background: '#f0f4ff', padding: '15px', borderRadius: '15px', border: '1px solid #dce4f5', zIndex: 1001 }}>
-              <label style={{ fontSize: '12px', color: '#666', marginBottom: '5px', display: 'block' }}>Localização</label>
+            <div style={{ background: 'var(--color-primary-soft)', padding: '15px', borderRadius: 'var(--radius-md)', border: '1px solid #e3e8f2' }}>
+              <label style={{ fontSize: '12px', color: '#5b6577', marginBottom: '5px', display: 'block', fontWeight: 600 }}>Localização</label>
               <Input type="text" value={dadosLojista.localizacao} readOnly className="campo" />
             </div>
           </div>
 
-          <h3 style={{ marginBottom: '10px' }}>Itens</h3>
-          <ul style={{ padding: 0, listStyle: 'none', margin: 0, marginBottom: '25px' }}>
-            {itens.map(item => (
-              <li key={item.id} style={{ background: 'white', border: '1px solid #eee', padding: '15px', borderRadius: '12px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1001 }}>
-                <div style={{ flex: 1 }}>
-                  <div><strong>{item.nome}</strong></div>
-                  <div>R$ {item.valor.toFixed(2)}</div>
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <Button onClick={() => handleAbrirEditar(item)} className="btn-responsivo" style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '14px' }}>
-                    Editar
-                  </Button>
-                  <Button onClick={() => handleDeletar(item)} className="btn-responsivo" style={{ background: '#ff4444', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '14px' }}>
-                    Deletar
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {itens.length > 0 && (
+            <>
+              <h3 style={{ marginBottom: '12px', fontSize: '1.05rem' }}>Itens</h3>
+              <ul style={{ padding: 0, listStyle: 'none', margin: 0, marginBottom: '25px' }}>
+                {itens.map(item => (
+                  <li key={item.id} style={{ background: 'white', border: '1px solid var(--color-border)', padding: '15px', borderRadius: 'var(--radius-md)', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ flex: 1 }}>
+                      <div><strong>{item.nome}</strong></div>
+                      <div style={{ color: '#5b6577' }}>R$ {item.valor.toFixed(2)}</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <Button onClick={() => handleAbrirEditar(item)} className="btn-responsivo" style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '6px 12px', borderRadius: 'var(--radius-sm)', fontSize: '14px' }}>
+                        Editar
+                      </Button>
+                      <Button onClick={() => handleDeletar(item)} className="btn-responsivo" style={{ background: '#fdecec', color: '#dc2626', border: 'none', padding: '6px 12px', borderRadius: 'var(--radius-sm)', fontSize: '14px' }}>
+                        Deletar
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
 
-          <h3 style={{ marginBottom: '10px' }}>Animais</h3>
-          
+          <h3 style={{ marginBottom: '12px', fontSize: '1.05rem' }}>Animais ({animaisFiltrados.length})</h3>
+
           {/* Barra de busca */}
           <div style={{ marginBottom: '15px' }}>
-            <Input 
-              type="text" 
-              placeholder="Buscar por brinco, categoria ou status..." 
-              value={filtroBusca} 
-              onChange={(e) => setFiltroBusca(e.target.value)} 
-              className="campo" 
+            <Input
+              type="text"
+              placeholder="Buscar por brinco, categoria ou status..."
+              value={filtroBusca}
+              onChange={(e) => setFiltroBusca(e.target.value)}
+              className="campo"
             />
           </div>
 
@@ -512,42 +519,46 @@ export default function Monitoramento() {
             {animaisFiltrados.map(animal => {
               const fugiu = animal.pastoAtual !== animal.pastoAutorizado;
               return (
-                <li 
-                  key={animal.id} 
+                <li
+                  key={animal.id}
                   onClick={() => navigate(`/animal/${animal.id}`)}
                   role="button"
-                  style={{ 
-                    background: fugiu ? '#ffebee' : 'white', 
-                    border: fugiu ? '2px solid #f44336' : '1px solid #eee', 
-                    padding: '15px', 
-                    borderRadius: '12px', 
-                    marginBottom: '8px', 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center', 
-                    zIndex: 1001,
-                    cursor: 'pointer'
+                  style={{
+                    background: fugiu ? '#fdecec' : 'white',
+                    border: fugiu ? '1.5px solid #f3b4b7' : '1px solid var(--color-border)',
+                    padding: '15px',
+                    borderRadius: 'var(--radius-md)',
+                    marginBottom: '8px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    transition: 'box-shadow 0.15s ease, transform 0.15s ease'
                   }}
                 >
-                  <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flex: 1 }}>
-                    <img src={animal.foto} alt={animal.idBrinco} loading="lazy" style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} />
-                    <div>
-                      <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        {animal.idBrinco} 
-                        {fugiu && <span style={{ color: '#f44336', fontSize: '18px' }}>⚠️</span>}
+                  <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                    <img src={animal.foto} alt={animal.idBrinco} loading="lazy" style={{ width: '56px', height: '56px', borderRadius: 'var(--radius-sm)', objectFit: 'cover', flexShrink: 0, background: '#f2f5fb' }} />
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {animal.idBrinco}
+                        {fugiu && (
+                          <span className="badge badge-danger">
+                            <TriangleAlert size={12} /> Fugiu
+                          </span>
+                        )}
                       </div>
-                      <div style={{ fontSize: '0.875rem', color: '#666', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '0.85rem', color: '#5b6577', margin: '4px 0' }}>
                         {animal.categoria} • {animal.peso}kg • {animal.status}
                       </div>
-                      <div style={{ fontSize: '0.875rem', color: '#444', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '0.8rem', color: '#5b6577', marginBottom: '4px' }}>
                         Tecnologia: {formatTrackingTechnology(animal)}
                       </div>
                       {animal.bateria !== undefined && (
-                        <div style={{ fontSize: '0.875rem', color: '#444', marginBottom: '4px' }}>
-                          Bateria: {animal.bateria}%
+                        <div style={{ fontSize: '0.8rem', color: '#5b6577', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <Battery size={13} /> Bateria: {animal.bateria}%
                         </div>
                       )}
-                      <div style={{ fontSize: '0.8125rem', color: fugiu ? '#f44336' : '#4caf50' }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 600, color: fugiu ? '#dc2626' : '#16a34a' }}>
                         Pasto: {animal.pastoAtual} {fugiu ? '(Fugiu! Autorizado: ' + animal.pastoAutorizado + ')' : ''}
                       </div>
                     </div>
@@ -557,70 +568,74 @@ export default function Monitoramento() {
             })}
           </ul>
 
+          {!animaisFiltrados.length && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '18px', borderRadius: 'var(--radius-md)', background: 'var(--color-surface-alt)', color: '#5b6577', marginBottom: '15px' }}>
+              <MapPinOff size={18} /> Nenhum animal encontrado para o filtro atual.
+            </div>
+          )}
+
           {/* Botão Carregar Mais */}
           {temMais && (
             <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-              <Button onClick={carregarMaisAnimais} className="btn-responsivo" style={{ background: '#607d8b', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '8px' }}>
+              <Button onClick={carregarMaisAnimais} className="btn-responsivo" style={{ background: 'var(--color-surface-alt)', color: '#3a4150', border: '1px solid var(--color-border)', padding: '10px 24px', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
                 Carregar Mais
               </Button>
             </div>
           )}
         </>
       ) : (
-        <p>Nenhum dado encontrado.</p>
+        <p style={{ color: '#5b6577' }}>Nenhum dado encontrado.</p>
       )}
 
       {modalAberto && itemEditando && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
-          <div style={{ position: 'relative', background: 'white', padding: '20px', borderRadius: '15px', width: '100%', maxWidth: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '16px' }}>
+          <div style={{ position: 'relative', background: 'white', padding: '24px', borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: '420px', maxHeight: '90vh', overflowY: 'auto', boxShadow: 'var(--shadow-lg)' }}>
             <Button
               type="button"
               onClick={handleFecharModal}
               aria-label="Fechar edição de item"
               style={{
                 position: 'absolute',
-                top: '12px',
-                right: '12px',
-                zIndex: 2100,
-                background: '#fff',
-                color: '#d32f2f',
-                border: '1px solid #d32f2f',
+                top: '16px',
+                right: '16px',
+                background: 'var(--color-surface-alt)',
+                color: '#8a93a6',
+                border: 'none',
                 borderRadius: '999px',
-                width: '36px',
-                height: '36px',
+                width: '32px',
+                height: '32px',
                 cursor: 'pointer',
-                fontWeight: 'bold',
-                fontSize: '16px'
+                padding: 0
               }}
             >
-              ✕
+              <X size={16} />
             </Button>
             <h3 style={{ margin: '0 0 20px 0' }}>Editar Item</h3>
             <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>Nome</label>
-              <Input 
-                type="text" 
-                value={nomeEdit} 
-                onChange={(e) => setNomeEdit(e.target.value)} 
-                className="campo" 
-                placeholder="Nome do item" 
+              <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#5b6577', fontWeight: 600 }}>Nome</label>
+              <Input
+                type="text"
+                value={nomeEdit}
+                onChange={(e) => setNomeEdit(e.target.value)}
+                className="campo"
+                placeholder="Nome do item"
               />
             </div>
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#666' }}>Valor</label>
-              <Input 
-                type="number" 
-                value={valorEdit} 
-                onChange={(e) => setValorEdit(e.target.value)} 
-                className="campo" 
-                placeholder="0.00" 
+              <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: '#5b6577', fontWeight: 600 }}>Valor</label>
+              <Input
+                type="number"
+                value={valorEdit}
+                onChange={(e) => setValorEdit(e.target.value)}
+                className="campo"
+                placeholder="0.00"
               />
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
-              <Button onClick={handleFecharModal} className="btn-responsivo" style={{ flex: 1, background: '#9e9e9e', color: 'white', border: 'none', padding: '12px', borderRadius: '8px' }}>
+              <Button onClick={handleFecharModal} className="btn-responsivo" style={{ flex: 1, background: 'var(--color-surface-alt)', color: '#3a4150', border: '1px solid var(--color-border)', padding: '12px', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
                 Cancelar
               </Button>
-              <Button onClick={handleSalvarEdicao} className="btn-responsivo" style={{ flex: 1, background: '#1a73e8', color: 'white', border: 'none', padding: '12px', borderRadius: '8px' }}>
+              <Button onClick={handleSalvarEdicao} className="btn-responsivo" style={{ flex: 1, background: '#1a73e8', color: 'white', border: 'none', padding: '12px', borderRadius: 'var(--radius-sm)', fontWeight: 700 }}>
                 Salvar
               </Button>
             </div>

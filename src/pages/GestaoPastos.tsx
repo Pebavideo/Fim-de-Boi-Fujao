@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { auth, db } from '../firebase/config';
 import { collection, getDocs, query, where, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { Trees, MapPinned, Link2 } from 'lucide-react';
 import LayoutPadrao from '../components/LayoutPadrao';
 import MapComponent from '../components/MapComponent';
 
@@ -164,30 +165,33 @@ export default function GestaoPastos() {
 
   return (
     <LayoutPadrao>
-      <div style={{ marginBottom: '20px' }}>
-        <h2>Gestão de Pastos</h2>
-        <p style={{ color: '#666', marginTop: '8px' }}>
+      <div style={{ marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid var(--color-border)' }}>
+        <h2 style={{ margin: 0, fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Trees size={22} color="#16a34a" /> Gestão de Pastos
+        </h2>
+        <p style={{ color: '#5b6577', marginTop: '8px' }}>
           Aqui você encontra os pastos cadastrados para o seu usuário.
         </p>
       </div>
 
-      <div style={{ marginBottom: '30px', padding: '20px', border: '1px solid #e0e0e0', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
-        <h3>Cadastrar Novo Pasto</h3>
-        <p style={{ color: '#555', marginBottom: '16px' }}>
+      <div style={{ marginBottom: '24px', padding: '20px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--color-surface-alt)' }}>
+        <h3 style={{ margin: '0 0 8px' }}>Cadastrar Novo Pasto</h3>
+        <p style={{ color: '#5b6577', marginBottom: '16px' }}>
           Registre um pasto independente com nome e polígono. O lote pode ser vinculado depois.
         </p>
-        <div style={{ display: 'grid', gap: '12px', marginBottom: '20px' }}>
-          <label style={{ display: 'block', color: '#444', fontWeight: 600 }}>Nome do Pasto</label>
+        <div style={{ display: 'grid', gap: '8px', marginBottom: '20px', maxWidth: '420px' }}>
+          <label style={{ display: 'block', color: '#3a4150', fontWeight: 600, fontSize: '0.9rem' }}>Nome do Pasto</label>
           <input
             type="text"
+            className="campo"
             value={novoPastoNome}
             onChange={(e) => setNovoPastoNome(e.target.value)}
             placeholder="Informe o nome do pasto"
-            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd' }}
+            style={{ margin: 0 }}
           />
         </div>
       </div>
-      <div style={{ height: '400px', marginBottom: '10px' }}>
+      <div style={{ height: '400px', marginBottom: '16px', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--color-border)' }}>
         <MapComponent
           initialPolygon={undefined}
           onPolygonCreated={(coords) => {
@@ -195,38 +199,44 @@ export default function GestaoPastos() {
           }}
         />
       </div>
-        <button
-          onClick={handleCriarPasto}
-          disabled={!novoPastoNome || !novoPastoPolygon}
-          style={{
-            backgroundColor: !novoPastoNome || !novoPastoPolygon ? '#999' : '#4CAF50',
-            color: 'white',
-            padding: '10px 15px',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: !novoPastoNome || !novoPastoPolygon ? 'not-allowed' : 'pointer',
-            fontSize: '16px'
-          }}
-        >
-          Salvar Pasto
-        </button>
+      <button
+        onClick={handleCriarPasto}
+        disabled={!novoPastoNome || !novoPastoPolygon}
+        className="btn-interativo"
+        style={{
+          backgroundColor: !novoPastoNome || !novoPastoPolygon ? '#c9cfdb' : '#16a34a',
+          color: 'white',
+          padding: '12px 20px',
+          border: 'none',
+          borderRadius: 'var(--radius-sm)',
+          cursor: !novoPastoNome || !novoPastoPolygon ? 'not-allowed' : 'pointer',
+          fontSize: '0.95rem',
+          fontWeight: 700,
+          marginBottom: '28px'
+        }}
+      >
+        Salvar Pasto
+      </button>
 
       {carregando ? (
-        <p>Carregando pastos...</p>
+        <p style={{ color: '#5b6577' }}>Carregando pastos...</p>
       ) : filteredPastos.length ? (
         <>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
             {(['TODOS', 'VAZIOS', 'OCUPADOS'] as const).map((status) => (
               <button
                 key={status}
                 onClick={() => setFiltroStatus(status)}
+                className="btn-interativo"
                 style={{
-                  padding: '8px 14px',
-                  borderRadius: '8px',
-                  border: filtroStatus === status ? '2px solid #1a73e8' : '1px solid #ddd',
+                  padding: '8px 16px',
+                  borderRadius: 'var(--radius-pill)',
+                  border: filtroStatus === status ? '1px solid #1a73e8' : '1px solid var(--color-border)',
                   backgroundColor: filtroStatus === status ? '#1a73e8' : '#fff',
-                  color: filtroStatus === status ? 'white' : '#333',
-                  cursor: 'pointer'
+                  color: filtroStatus === status ? 'white' : '#3a4150',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '0.85rem'
                 }}
               >
                 {status}
@@ -237,37 +247,42 @@ export default function GestaoPastos() {
             {filteredPastos.map((pasto) => {
               const status = (pasto.status ?? 'vazio').toLowerCase();
               return (
-                <li key={pasto.id} style={{ background: '#f7f9ff', border: '1px solid #dce4f5', borderRadius: '14px', padding: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' }}>
+                <li key={pasto.id} style={{ background: 'white', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '18px', boxShadow: 'var(--shadow-sm)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, minWidth: '240px' }}>
-                      <strong>{pasto.nome}</strong>
-                      <div style={{ marginTop: '8px', color: '#666', fontSize: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <strong style={{ fontSize: '1.05rem' }}>{pasto.nome}</strong>
+                        <span className={`badge ${status === 'ocupado' ? 'badge-danger' : 'badge-success'}`}>
+                          {status === 'ocupado' ? 'Ocupado' : 'Vazio'}
+                        </span>
+                      </div>
+                      <div style={{ marginTop: '8px', color: '#5b6577', fontSize: '0.85rem' }}>
                         Cadastrado em: {pasto.criadoEm ? new Date(pasto.criadoEm.seconds * 1000).toLocaleDateString('pt-BR') : 'Data não disponível'}
                       </div>
                       {pasto.polygon && (
-                        <div style={{ marginTop: '8px', color: '#666', fontSize: '14px' }}>
-                          Polígono Cadastrado: Sim
+                        <div style={{ marginTop: '6px', color: '#5b6577', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <MapPinned size={14} /> Polígono cadastrado
                         </div>
                       )}
                       {pasto.loteVinculado && (
-                        <div style={{ marginTop: '8px', color: '#444', fontSize: '14px' }}>
-                          Lote Vinculado: {pasto.loteVinculado}
+                        <div style={{ marginTop: '6px', color: '#3a4150', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Link2 size={14} /> Lote vinculado: {pasto.loteVinculado}
                         </div>
                       )}
-                      <div style={{ marginTop: '8px', fontSize: '14px', color: status === 'ocupado' ? '#d32f2f' : '#388e3c' }}>
-                        Status: {status}
-                      </div>
                     </div>
                     <div style={{ display: 'grid', gap: '10px', minWidth: '220px' }}>
                       <button
                         onClick={() => handleToggleStatus(pasto)}
+                        className="btn-interativo"
                         style={{
-                          padding: '8px 12px',
-                          borderRadius: '8px',
+                          padding: '10px 14px',
+                          borderRadius: 'var(--radius-sm)',
                           border: 'none',
-                          backgroundColor: status === 'ocupado' ? '#ff7043' : '#4caf50',
-                          color: 'white',
-                          cursor: 'pointer'
+                          backgroundColor: status === 'ocupado' ? '#fdecec' : '#eafaf0',
+                          color: status === 'ocupado' ? '#dc2626' : '#16a34a',
+                          cursor: 'pointer',
+                          fontWeight: 700,
+                          fontSize: '0.85rem'
                         }}
                       >
                         {status === 'ocupado' ? 'Marcar como VAZIO' : 'Marcar como OCUPADO'}
@@ -276,7 +291,8 @@ export default function GestaoPastos() {
                         <select
                           value={loteParaVincular[pasto.id] ?? ''}
                           onChange={(e) => setLoteParaVincular((prev) => ({ ...prev, [pasto.id]: e.target.value }))}
-                          style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #ddd', width: '100%' }}
+                          className="campo"
+                          style={{ margin: 0 }}
                         >
                           <option value="">Selecione um lote</option>
                           {lotesDisponiveis.map((lote) => (
@@ -287,13 +303,16 @@ export default function GestaoPastos() {
                         </select>
                         <button
                           onClick={() => handleVincularLote(pasto)}
+                          className="btn-interativo"
                           style={{
-                            padding: '8px 12px',
-                            borderRadius: '8px',
+                            padding: '10px 14px',
+                            borderRadius: 'var(--radius-sm)',
                             border: 'none',
                             backgroundColor: '#1a73e8',
                             color: 'white',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            fontWeight: 700,
+                            fontSize: '0.85rem'
                           }}
                         >
                           Vincular Lote
@@ -307,7 +326,7 @@ export default function GestaoPastos() {
           </ul>
         </>
       ) : (
-        <p style={{ color: '#666' }}>Nenhum pasto cadastrado ainda.</p>
+        <p style={{ color: '#5b6577' }}>Nenhum pasto cadastrado ainda.</p>
       )}
     </LayoutPadrao>
   );

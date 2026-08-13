@@ -3,8 +3,17 @@ import { useNavigate, Link } from 'react-router-dom';
 import { auth, db } from '../firebase/config';
 import { doc, getDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { logoutSeguro } from '../utils/auth';
+import { Radar, Map, ClipboardPlus, Trees, Boxes, LogOut, TriangleAlert, CheckCheck } from 'lucide-react';
 import Button from '../components/Button';
 import LayoutPadrao from '../components/LayoutPadrao';
+
+const acessosRapidos = [
+  { label: 'Monitoramento', desc: 'Acompanhe seu rebanho em tempo real', path: '/monitoramento', icon: Radar, color: '#10b981' },
+  { label: 'Mapa de Monitoramento', desc: 'Visualize pastos e localização no mapa', path: '/mapa-monitoramento', icon: Map, color: '#0ea5e9' },
+  { label: 'Cadastro de Animais', desc: 'Registre novos animais e lotes', path: '/cadastro-animais', icon: ClipboardPlus, color: '#1a73e8' },
+  { label: 'Gestão de Pastos', desc: 'Gerencie áreas e cercas virtuais', path: '/gestao-pastos', icon: Trees, color: '#16a34a' },
+  { label: 'Gestão de Lotes', desc: 'Edite e organize seus lotes', path: '/gestao-lotes', icon: Boxes, color: '#f59e0b' },
+];
 
 interface DadosLojista {
   nome: string;
@@ -97,51 +106,58 @@ export default function PainelPrincipal() {
 
   return (
     <LayoutPadrao>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid #eee', zIndex: 100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <img src="/assets/logo192.png" alt="Boi Fujão" style={{ width: '60px', height: '60px' }} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <h2 style={{ margin: 0 }}>Painel Principal</h2>
-            <p style={{ margin: 0, color: '#444', fontSize: '17px', fontWeight: 600, lineHeight: 1.4 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid #e3e8f2' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <img src="/assets/logo192.png" alt="Boi Fujão" style={{ width: '56px', height: '56px', borderRadius: '14px', boxShadow: '0 6px 16px rgba(26,115,232,0.18)' }} />
+          <div>
+            <h2 style={{ margin: 0, fontSize: '1.4rem' }}>Painel Principal</h2>
+            <p style={{ margin: '4px 0 0', color: '#5b6577', fontSize: '0.95rem', fontWeight: 500, lineHeight: 1.4 }}>
               {getSaudacaoCompleta()}
             </p>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '10px', zIndex: 100 }}>
-          <Button onClick={() => navigate('/cadastro-animais')} className="btn-responsivo btn-interativo" style={{ background: '#2196F3', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', zIndex: 100 }}>
-            Novo Cadastro
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <Button onClick={() => navigate('/cadastro-animais')} className="btn-responsivo" style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '10px 18px', borderRadius: '10px', fontWeight: 700 }}>
+            <ClipboardPlus size={16} strokeWidth={2.5} /> Novo Cadastro
           </Button>
-          <Button onClick={handleLogout} className="btn-responsivo btn-interativo" style={{ fontSize: '12px', color: 'white', background: '#ff4444', border: 'none', padding: '8px 16px', borderRadius: '8px', zIndex: 100 }}>
-            SAIR
+          <Button onClick={handleLogout} className="btn-responsivo" style={{ fontSize: '0.85rem', color: '#dc2626', background: '#fdecec', border: 'none', padding: '10px 18px', borderRadius: '10px', fontWeight: 700 }}>
+            <LogOut size={16} strokeWidth={2.5} /> Sair
           </Button>
         </div>
       </div>
 
       {alertas.length > 0 && (
-        <div style={{ marginBottom: '30px', padding: '20px', border: '2px solid #f44336', borderRadius: '15px', backgroundColor: '#ffebee' }}>
-          <h3 style={{ color: '#f44336', marginTop: 0, marginBottom: '15px' }}>Alertas de Geofencing ({alertas.length})</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '15px' }}>
+        <div style={{ marginBottom: '28px', padding: '20px', border: '1px solid #f5c6cb', borderRadius: 'var(--radius-lg)', backgroundColor: '#fdecec' }}>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#dc2626', marginTop: 0, marginBottom: '15px', fontSize: '1.05rem' }}>
+            <TriangleAlert size={18} /> Alertas de Geofencing ({alertas.length})
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
             {alertas.map(alerta => (
-              <div key={alerta.id} style={{ background: 'white', padding: '15px', borderRadius: '10px', border: '1px solid #ef9a9a', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#d32f2f' }}>Animal Fora do Pasto!</p>
-                <p style={{ margin: '0 0 5px 0' }}>Brinco: {alerta.idBrinco}</p>
-                <p style={{ margin: '0 0 5px 0' }}>Pasto: {alerta.pastoNome}</p>
-                <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#777' }}>
+              <div key={alerta.id} style={{ background: 'white', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid #f3c6c9', boxShadow: 'var(--shadow-sm)' }}>
+                <p style={{ margin: '0 0 6px 0', fontWeight: 700, color: '#dc2626' }}>Animal Fora do Pasto!</p>
+                <p style={{ margin: '0 0 4px 0', fontSize: '0.9rem', color: '#3a4150' }}>Brinco: {alerta.idBrinco}</p>
+                <p style={{ margin: '0 0 4px 0', fontSize: '0.9rem', color: '#3a4150' }}>Pasto: {alerta.pastoNome}</p>
+                <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#8a93a6' }}>
                   {alerta.timestamp?.toDate().toLocaleString('pt-BR') || 'Data não disponível'}
                 </p>
                 <button
                   onClick={() => handleMarcarComoLido(alerta.id)}
+                  className="btn-interativo"
                   style={{
-                    backgroundColor: '#f44336',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    backgroundColor: '#dc2626',
                     color: 'white',
-                    padding: '8px 12px',
+                    padding: '8px 14px',
                     border: 'none',
-                    borderRadius: '5px',
+                    borderRadius: 'var(--radius-sm)',
                     cursor: 'pointer',
-                    fontSize: '14px'
+                    fontSize: '0.85rem',
+                    fontWeight: 700
                   }}
                 >
-                  Marcar como Lido
+                  <CheckCheck size={14} /> Marcar como Lido
                 </button>
               </div>
             ))}
@@ -149,55 +165,30 @@ export default function PainelPrincipal() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '20px', background: '#fffbeb', padding: '20px', borderRadius: '15px', border: '2px dashed #f97316' }}>
-        <Link to="/monitoramento" style={{ textDecoration: 'none' }}>
-          <div className="btn-interativo" style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
-            <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '18px' }}>1. Monitoramento</h3>
-            <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>/monitoramento</p>
-          </div>
-        </Link>
-
-        <Link to="/mapa-monitoramento" style={{ textDecoration: 'none' }}>
-          <div className="btn-interativo" style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
-            <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '18px' }}>2. Mapa Monitoramento</h3>
-            <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>/mapa-monitoramento</p>
-          </div>
-        </Link>
-
-        <Link to="/painel-principal" style={{ textDecoration: 'none' }}>
-          <div className="btn-interativo" style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
-            <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '18px' }}>3. Painel Principal</h3>
-            <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>/painel-principal</p>
-          </div>
-        </Link>
-
-        <Link to="/cadastro-animais" style={{ textDecoration: 'none' }}>
-          <div className="btn-interativo" style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
-            <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '18px' }}>4. Cadastro Animais</h3>
-            <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>/cadastro-animais</p>
-          </div>
-        </Link>
-
-        <Link to="/gestao-pastos" style={{ textDecoration: 'none' }}>
-          <div className="btn-interativo" style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
-            <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '18px' }}>5. Gestão Pastos</h3>
-            <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>/gestao-pastos</p>
-          </div>
-        </Link>
-
-        <Link to="/gestao-lotes" style={{ textDecoration: 'none' }}>
-          <div className="btn-interativo" style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
-            <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '18px' }}>6. Gestão Lotes</h3>
-            <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>/gestao-lotes</p>
-          </div>
-        </Link>
-
-        <Link to="/completar-cadastro" style={{ textDecoration: 'none' }}>
-          <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '2px solid #10b981', zIndex: 1001, cursor: 'pointer' }}>
-            <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '18px' }}>7. Completar Cadastro</h3>
-            <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>/completar-cadastro</p>
-          </div>
-        </Link>
+      <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', color: '#1a2233' }}>Acessos Rápidos</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '16px' }}>
+        {acessosRapidos.map(({ label, desc, path, icon: Icon, color }) => (
+          <Link key={path} to={path} style={{ textDecoration: 'none' }}>
+            <div
+              className="btn-interativo"
+              style={{
+                background: 'white',
+                padding: '20px',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid #e3e8f2',
+                boxShadow: 'var(--shadow-sm)',
+                cursor: 'pointer',
+                height: '100%'
+              }}
+            >
+              <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: `${color}1a`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
+                <Icon size={22} color={color} strokeWidth={2.25} />
+              </div>
+              <h3 style={{ margin: '0 0 6px 0', color: '#1a2233', fontSize: '1rem' }}>{label}</h3>
+              <p style={{ margin: 0, color: '#8a93a6', fontSize: '0.85rem', lineHeight: 1.4 }}>{desc}</p>
+            </div>
+          </Link>
+        ))}
       </div>
     </LayoutPadrao>
   );

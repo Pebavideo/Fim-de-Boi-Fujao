@@ -6,6 +6,7 @@ import LayoutPadrao from '../components/LayoutPadrao';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import MapComponent from '../components/MapComponent';
+import { ArrowLeft, Search, Boxes, FileCheck, X, Trash2, PencilLine, TriangleAlert } from 'lucide-react';
 
 interface LoteData {
   id: string;
@@ -320,28 +321,30 @@ export default function GestaoLotes() {
 
   return (
     <LayoutPadrao>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2 style={{ margin: 0 }}>Gestão de Lotes</h2>
-        <Button onClick={() => { handleLimpar(); navigate('/painel-principal'); }} className="btn-responsivo" style={{ background: '#9e9e9e', color: 'white', border: 'none', padding: '10px 18px', borderRadius: '10px' }}>
-          Voltar
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid var(--color-border)' }}>
+        <h2 style={{ margin: 0, fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Boxes size={22} color="#f59e0b" /> Gestão de Lotes
+        </h2>
+        <Button onClick={() => { handleLimpar(); navigate('/painel-principal'); }} className="btn-responsivo" style={{ background: 'var(--color-surface-alt)', color: '#3a4150', border: '1px solid var(--color-border)', padding: '10px 18px', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
+          <ArrowLeft size={16} /> Voltar
         </Button>
       </div>
 
       {loading ? (
-        <p>Carregando dados...</p>
+        <p style={{ color: '#5b6577' }}>Carregando dados...</p>
       ) : (
         <>
           {mensagem && (
-            <div style={{ background: '#fff3cd', border: '1px solid #ffecb5', color: '#856404', padding: '10px 15px', borderRadius: '8px', marginBottom: '20px' }}>
-              {mensagem}
+            <div style={{ background: 'var(--color-warning-light)', border: '1px solid #fcd9a4', color: '#92400e', padding: '12px 16px', borderRadius: 'var(--radius-sm)', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <TriangleAlert size={16} /> {mensagem}
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px', marginBottom: '20px' }}>
-            <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5' }}>
-              <h3 style={{ marginTop: 0, marginBottom: '15px' }}>Buscar</h3>
-              
-              <div style={{ marginBottom: '15px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '20px' }}>
+            <div style={{ background: 'white', padding: '20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <h3 style={{ marginTop: 0, marginBottom: '15px', fontSize: '1.05rem' }}>Buscar</h3>
+
+              <div style={{ marginBottom: '12px' }}>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <select
                     value={selectedLoteOption}
@@ -349,7 +352,8 @@ export default function GestaoLotes() {
                       setSelectedLoteOption(e.target.value);
                       setBuscaLote(e.target.value);
                     }}
-                    style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #dce4f5', background: 'white' }}
+                    className="campo"
+                    style={{ flex: 1, margin: 0 }}
                   >
                     <option value="">Selecionar lote</option>
                     {lotes.map((loteItem) => (
@@ -360,13 +364,14 @@ export default function GestaoLotes() {
                   </select>
                   <button
                     onClick={handleBuscarLote}
-                    style={{ minWidth: '140px', backgroundColor: '#1a73e8', color: 'white', border: 'none', borderRadius: '8px', padding: '12px 14px', cursor: 'pointer' }}
+                    className="btn-interativo"
+                    style={{ minWidth: '140px', backgroundColor: '#1a73e8', color: 'white', border: 'none', borderRadius: 'var(--radius-sm)', padding: '12px 14px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}
                   >
-                    BUSCAR LOTE
+                    Buscar Lote
                   </button>
                 </div>
               </div>
-              <div style={{ marginBottom: '15px' }}>
+              <div style={{ marginBottom: '12px' }}>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <Input
                     type="text"
@@ -375,18 +380,19 @@ export default function GestaoLotes() {
                     onKeyDown={handleBuscarLoteEnter}
                     className="campo"
                     placeholder="Buscar por nome do lote"
-                    style={{ flex: 1 }}
+                    style={{ flex: 1, margin: 0 }}
                   />
                   <button
                     onClick={handleBuscarLote}
-                    style={{ minWidth: '120px', backgroundColor: '#1a73e8', color: 'white', border: 'none', borderRadius: '8px', padding: '12px 14px', cursor: 'pointer' }}
+                    className="btn-interativo"
+                    style={{ minWidth: '120px', backgroundColor: '#1a73e8', color: 'white', border: 'none', borderRadius: 'var(--radius-sm)', padding: '12px 14px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}
                   >
-                    CARREGAR
+                    Carregar
                   </button>
                 </div>
               </div>
 
-              <div style={{ marginBottom: '15px' }}>
+              <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <Input
                     type="text"
@@ -395,52 +401,54 @@ export default function GestaoLotes() {
                     onKeyDown={handleBuscarBrincoEnter}
                     className="campo"
                     placeholder="Buscar por Brinco"
-                    style={{ flex: 1 }}
+                    style={{ flex: 1, margin: 0 }}
                   />
                   <button
                     onClick={handleBuscarBrinco}
-                    style={{ minWidth: '120px', backgroundColor: '#1a73e8', color: 'white', border: 'none', borderRadius: '8px', padding: '12px 14px', cursor: 'pointer' }}
+                    className="btn-interativo"
+                    style={{ minWidth: '120px', backgroundColor: '#1a73e8', color: 'white', border: 'none', borderRadius: 'var(--radius-sm)', padding: '12px 14px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}
                   >
-                    BUSCAR BRINCO
+                    <Search size={14} /> Buscar
                   </button>
                 </div>
               </div>
 
-              <div style={{ marginBottom: '15px' }}>
+              <div style={{ marginBottom: '16px' }}>
                 {showMap && selectedLoteId ? (
                   <MapComponent
                     drawEnabled={Boolean(selectedLoteId)}
                     onPolygonCreated={() => {}}
                   />
                 ) : (
-                  <div style={{ minHeight: '400px', border: '1px dashed #d1d5db', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', color: '#4b5563', background: '#f8fafc' }}>
-                    Selecione um lote e clique em BUSCAR LOTE para carregar o mapa e habilitar o desenho.
+                  <div style={{ minHeight: '300px', border: '1.5px dashed var(--color-border-strong)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', color: '#5b6577', background: 'var(--color-surface-alt)', textAlign: 'center', fontSize: '0.9rem' }}>
+                    Selecione um lote e clique em "Buscar Lote" para carregar o mapa e habilitar o desenho.
                   </div>
                 )}
               </div>
 
-              <div style={{ maxHeight: '350px', overflowY: 'auto', marginBottom: '15px' }}>
+              <div style={{ maxHeight: '350px', overflowY: 'auto', marginBottom: '16px' }}>
                 {lotesFiltrados.length === 0 ? (
-                  <p style={{ color: '#666', textAlign: 'center', padding: '20px' }}>
+                  <p style={{ color: '#5b6577', textAlign: 'center', padding: '20px' }}>
                     Nenhum lote encontrado.
                   </p>
                 ) : (
                   lotesFiltrados.map(loteItem => (
-                          <div
-                            key={loteItem.id}
-                            style={{
-                              background: lote === loteItem.nome_lote ? '#e8f0ff' : 'white',
-                              border: lote === loteItem.nome_lote ? '1px solid #1a73e8' : '1px solid #eee',
-                              padding: '15px',
-                              borderRadius: '10px',
-                              marginBottom: '10px',
-                              cursor: 'pointer',
-                              wordBreak: 'break-word'
-                            }}
+                    <div
+                      key={loteItem.id}
+                      className="btn-interativo"
+                      style={{
+                        background: lote === loteItem.nome_lote ? 'var(--color-primary-soft)' : 'white',
+                        border: lote === loteItem.nome_lote ? '1px solid #1a73e8' : '1px solid var(--color-border)',
+                        padding: '14px',
+                        borderRadius: 'var(--radius-md)',
+                        marginBottom: '10px',
+                        cursor: 'pointer',
+                        wordBreak: 'break-word'
+                      }}
                       onClick={() => handleSelecionarLote(loteItem.id)}
                     >
-                      <h4 style={{ margin: '0 0 5px 0' }}>{loteItem.nome_lote}</h4>
-                      <p style={{ margin: 0, color: '#666', fontSize: '0.875rem' }}>
+                      <h4 style={{ margin: '0 0 4px 0' }}>{loteItem.nome_lote}</h4>
+                      <p style={{ margin: 0, color: '#5b6577', fontSize: '0.85rem' }}>
                         {loteItem.animais.length} cabeças
                       </p>
                     </div>
@@ -448,34 +456,34 @@ export default function GestaoLotes() {
                 )}
               </div>
 
-              <Button onClick={handleLimpar} className="btn-responsivo" style={{ width: '100%', background: '#6c757d', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold' }}>
+              <Button onClick={handleLimpar} className="btn-responsivo" style={{ width: '100%', background: 'var(--color-surface-alt)', color: '#3a4150', border: '1px solid var(--color-border)', padding: '12px', borderRadius: 'var(--radius-sm)', fontWeight: 700 }}>
                 Limpar
               </Button>
             </div>
 
             {lote || animalId ? (
-              <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5', position: 'relative' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                  <h3 style={{ marginTop: 0, marginBottom: 0 }}>{animalId ? 'Editar Registro' : 'Lote Selecionado'}</h3>
+              <div style={{ background: 'white', padding: '20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)', position: 'relative' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem' }}>{animalId ? 'Editar Registro' : 'Lote Selecionado'}</h3>
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     {lote && (
                       <Button onClick={() => {
                         const loteEncontrado = lotes.find(l => l.nome_lote === lote);
                         if (loteEncontrado) {
-                          navigate(`/lote-detail/${loteEncontrado.id}`);
+                          navigate(`/lote/${loteEncontrado.id}`);
                         }
-                      }} className="btn-responsivo" style={{ background: '#28a745', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', fontWeight: 'bold' }}>
-                        Certidão de Rastreabilidade
+                      }} className="btn-responsivo" style={{ background: '#eafaf0', color: '#16a34a', border: 'none', padding: '8px 16px', borderRadius: 'var(--radius-sm)', fontWeight: 700, fontSize: '0.85rem' }}>
+                        <FileCheck size={15} /> Certidão de Rastreabilidade
                       </Button>
                     )}
-                    <Button onClick={handleLimpar} className="btn-responsivo" style={{ background: 'transparent', color: '#666', border: 'none', padding: '5px 10px', borderRadius: '50%', fontSize: '20px', fontWeight: 'bold' }}>
-                      ×
+                    <Button onClick={handleLimpar} aria-label="Fechar" className="btn-interativo" style={{ background: 'var(--color-surface-alt)', color: '#5b6577', border: 'none', padding: '8px', borderRadius: '999px', width: '32px', height: '32px', minWidth: '32px' }}>
+                      <X size={16} />
                     </Button>
                   </div>
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Nome da Fazenda</label>
+                  <label style={{ fontSize: '0.8rem', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Nome da Fazenda</label>
                   <Input
                     type="text"
                     placeholder="Nome da fazenda ou propriedade"
@@ -485,9 +493,9 @@ export default function GestaoLotes() {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px', marginBottom: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '15px', marginBottom: '20px' }}>
                   <div>
-                    <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Identificação do Brinco</label>
+                    <label style={{ fontSize: '0.8rem', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Identificação do Brinco</label>
                     <Input
                       type="text"
                       placeholder="Número do brinco"
@@ -498,7 +506,7 @@ export default function GestaoLotes() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Categoria</label>
+                    <label style={{ fontSize: '0.8rem', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Categoria</label>
                     <Input
                       type="text"
                       placeholder="Boi, Vaca, Bezerro..."
@@ -509,7 +517,7 @@ export default function GestaoLotes() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Origem (opcional)</label>
+                    <label style={{ fontSize: '0.8rem', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Origem (opcional)</label>
                     <Input
                       type="text"
                       placeholder="Compra, Nascimento na propriedade..."
@@ -520,7 +528,7 @@ export default function GestaoLotes() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Data de Nascimento (opcional)</label>
+                    <label style={{ fontSize: '0.8rem', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Data de Nascimento (opcional)</label>
                     <Input
                       type="date"
                       value={dataNascimento}
@@ -530,7 +538,7 @@ export default function GestaoLotes() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Pasto Autorizado</label>
+                    <label style={{ fontSize: '0.8rem', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Pasto Autorizado</label>
                     <Input
                       type="text"
                       placeholder="Digite o nome do pasto autorizado"
@@ -541,7 +549,7 @@ export default function GestaoLotes() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Lote</label>
+                    <label style={{ fontSize: '0.8rem', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Lote</label>
                     <Input
                       type="text"
                       placeholder="Nome do lote"
@@ -552,7 +560,7 @@ export default function GestaoLotes() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Quantidade de Cabeças</label>
+                    <label style={{ fontSize: '0.8rem', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Quantidade de Cabeças</label>
                     <Input
                       type="number"
                       placeholder="Quantidade"
@@ -563,7 +571,7 @@ export default function GestaoLotes() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Peso Médio por Cabeça (kg)</label>
+                    <label style={{ fontSize: '0.8rem', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Peso Médio por Cabeça (kg)</label>
                     <Input
                       type="number"
                       step="0.01"
@@ -576,58 +584,55 @@ export default function GestaoLotes() {
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Vacinas/Medicamentos</label>
+                  <label style={{ fontSize: '0.8rem', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Vacinas/Medicamentos</label>
                   <textarea
                     value={vacinasMedicamentos}
                     onChange={(e) => setVacinasMedicamentos(e.target.value)}
                     placeholder="Lista de vacinas ou medicamentos aplicados..."
+                    className="campo"
                     style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      border: '1px solid #dce4f5',
-                      borderRadius: '8px',
-                      fontSize: '0.875rem',
                       resize: 'none',
                       fontFamily: 'inherit',
                       lineHeight: '1.5',
+                      margin: 0,
                     }}
                   />
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ fontSize: '0.875rem', color: '#666', marginBottom: '5px', display: 'block' }}>Observações</label>
+                  <label style={{ fontSize: '0.8rem', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Observações</label>
                   <textarea
                     value={observacoes}
                     onChange={(e) => setObservacoes(e.target.value)}
                     placeholder="Observações adicionais sobre o animal..."
+                    className="campo"
                     style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      border: '1px solid #dce4f5',
-                      borderRadius: '8px',
-                      fontSize: '0.875rem',
                       resize: 'none',
                       fontFamily: 'inherit',
                       lineHeight: '1.5',
                       minHeight: '80px',
+                      margin: 0,
                     }}
                   />
                 </div>
 
-                <div style={{ padding: '10px', background: '#e8f0fe', borderRadius: '8px', fontWeight: 'bold', marginBottom: '10px' }}>
-                  Peso Total: {pesoTotalFormatado} kg
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+                  <div style={{ padding: '14px 16px', background: 'var(--color-primary-soft)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#5b6577', fontWeight: 600, marginBottom: '4px' }}>PESO TOTAL</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a2233' }}>{pesoTotalFormatado} kg</div>
+                  </div>
+                  <div style={{ padding: '14px 16px', background: 'var(--color-primary-soft)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#5b6577', fontWeight: 600, marginBottom: '4px' }}>TOTAL EM ARROBAS</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a2233' }}>{totalArrobasFormatado} @</div>
+                  </div>
                 </div>
 
-                <div style={{ padding: '10px', background: '#e8f0fe', borderRadius: '8px', fontWeight: 'bold', marginBottom: '20px' }}>
-                  Total em Arrobas: {totalArrobasFormatado} @
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-                  <Button onClick={handleDeletar} className="btn-responsivo" style={{ background: '#dc3545', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: 'bold' }}>
-                    Deletar
+                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '10px' }}>
+                  <Button onClick={handleDeletar} className="btn-responsivo" style={{ background: '#fdecec', color: '#dc2626', border: 'none', padding: '12px 22px', borderRadius: 'var(--radius-sm)', fontWeight: 700 }}>
+                    <Trash2 size={16} /> Deletar
                   </Button>
-                  <Button onClick={handleSalvarEdicao} className="btn-responsivo" style={{ background: '#ff9800', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: 'bold' }}>
-                    EDITAR LOTE
+                  <Button onClick={handleSalvarEdicao} className="btn-responsivo" style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '12px 22px', borderRadius: 'var(--radius-sm)', fontWeight: 700 }}>
+                    <PencilLine size={16} /> Editar Lote
                   </Button>
                 </div>
               </div>

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase/config';
 import { collection, addDoc, getDocs, query, where, doc, updateDoc } from 'firebase/firestore';
+import { ClipboardPlus, ArrowLeft, Eraser, Scale } from 'lucide-react';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import LayoutPadrao from '../components/LayoutPadrao';
@@ -28,7 +29,7 @@ const AutoResizeTextarea = ({
 
   return (
     <div>
-      <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>
+      <label style={{ fontSize: '13px', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>
         {label}
       </label>
       <textarea
@@ -36,15 +37,12 @@ const AutoResizeTextarea = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        className="campo"
         style={{
-          width: '100%',
-          padding: '10px 12px',
-          border: '1px solid #dce4f5',
-          borderRadius: '8px',
-          fontSize: '14px',
           resize: 'none',
           fontFamily: 'inherit',
           lineHeight: '1.5',
+          margin: 0,
         }}
       />
     </div>
@@ -63,47 +61,47 @@ const ResumoCadastro = ({
   vacinasMedicamentos,
 }: any) => {
   return (
-    <div style={{ background: '#f9f9f9', borderRadius: '8px', padding: '15px', border: '1px solid #dce4f5' }}>
-      <h3 style={{ margin: '0 0 15px 0', fontSize: '18px', color: '#1a73e8' }}>Resumo do Cadastro</h3>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+    <div style={{ background: 'var(--color-primary-soft)', borderRadius: 'var(--radius-md)', padding: '18px', border: '1px solid var(--color-border)' }}>
+      <h3 style={{ margin: '0 0 14px 0', fontSize: '1rem', color: '#1a73e8' }}>Resumo do Cadastro</h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
         {nomeFazenda && (
-          <div style={{ fontSize: '14px' }}>
+          <div style={{ fontSize: '0.875rem', color: '#3a4150' }}>
             <strong>Fazenda:</strong> {nomeFazenda}
           </div>
         )}
         {idBrinco && (
-          <div style={{ fontSize: '14px' }}>
+          <div style={{ fontSize: '0.875rem', color: '#3a4150' }}>
             <strong>ID/Brinco:</strong> {idBrinco}
           </div>
         )}
         {categoria && (
-          <div style={{ fontSize: '14px' }}>
+          <div style={{ fontSize: '0.875rem', color: '#3a4150' }}>
             <strong>Categoria:</strong> {categoria}
           </div>
         )}
         {lote && (
-          <div style={{ fontSize: '14px' }}>
+          <div style={{ fontSize: '0.875rem', color: '#3a4150' }}>
             <strong>Lote:</strong> {lote}
           </div>
         )}
         {qtdCabecas > 0 && (
-          <div style={{ fontSize: '14px' }}>
+          <div style={{ fontSize: '0.875rem', color: '#3a4150' }}>
             <strong>Quantidade de Cabeças:</strong> {qtdCabecas}
           </div>
         )}
         {pesoPorCabeca > 0 && (
-          <div style={{ fontSize: '14px' }}>
+          <div style={{ fontSize: '0.875rem', color: '#3a4150' }}>
             <strong>Peso Médio:</strong> {pesoPorCabeca} kg/cabeça
           </div>
         )}
-        <div style={{ fontSize: '14px' }}>
+        <div style={{ fontSize: '0.875rem', color: '#3a4150' }}>
           <strong>Peso Total:</strong> {pesoTotalFormatado} kg
         </div>
-        <div style={{ fontSize: '14px' }}>
+        <div style={{ fontSize: '0.875rem', color: '#3a4150' }}>
           <strong>Total em Arrobas:</strong> {totalArrobasFormatado} @
         </div>
         {vacinasMedicamentos && (
-          <div style={{ fontSize: '14px' }}>
+          <div style={{ fontSize: '0.875rem', color: '#3a4150' }}>
             <strong>Vacinas/Medicamentos:</strong> {vacinasMedicamentos}
           </div>
         )}
@@ -238,19 +236,21 @@ export default function CadastroAnimais() {
 
   return (
     <LayoutPadrao>
-      <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid #eee', zIndex: 100 }}>
+      <div className="header" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid var(--color-border)' }}>
         <div>
-          <h2 style={{ margin: 0 }}>Cadastro de Animais</h2>
-          <p style={{ margin: 0, color: '#666', fontSize: '16px' }}>Adicione um novo animal ou atualize um cadastro existente</p>
+          <h2 style={{ margin: 0, fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <ClipboardPlus size={22} color="#1a73e8" /> Cadastro de Animais
+          </h2>
+          <p style={{ margin: '6px 0 0', color: '#5b6577', fontSize: '0.95rem' }}>Adicione um novo animal ou atualize um cadastro existente</p>
         </div>
-        <Button onClick={() => navigate('/painel-principal')} className="btn-responsivo" style={{ fontSize: '12px', color: 'white', background: '#6c757d', border: 'none', padding: '8px 16px', borderRadius: '8px', zIndex: 100 }}>
-          Voltar
+        <Button onClick={() => navigate('/painel-principal')} className="btn-responsivo" style={{ fontSize: '0.85rem', color: '#3a4150', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', padding: '10px 18px', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
+          <ArrowLeft size={16} /> Voltar
         </Button>
       </div>
 
-      <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5' }}>
+      <div style={{ background: 'white', padding: '24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Nome da Fazenda</label>
+          <label style={{ fontSize: '13px', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Nome da Fazenda</label>
           <Input
             type="text"
             placeholder="Nome da fazenda ou propriedade"
@@ -260,9 +260,9 @@ export default function CadastroAnimais() {
           />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px', marginBottom: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px', marginBottom: '20px' }}>
           <div>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Identificação do Brinco (Obrigatório)</label>
+            <label style={{ fontSize: '13px', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Identificação do Brinco (Obrigatório)</label>
             <Input
               type="text"
               placeholder="Número do brinco"
@@ -273,7 +273,7 @@ export default function CadastroAnimais() {
           </div>
 
           <div>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Categoria</label>
+            <label style={{ fontSize: '13px', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Categoria</label>
             <Input
               type="text"
               placeholder="Boi, Vaca, Bezerro..."
@@ -284,7 +284,7 @@ export default function CadastroAnimais() {
           </div>
 
           <div>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Origem (opcional)</label>
+            <label style={{ fontSize: '13px', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Origem (opcional)</label>
             <Input
               type="text"
               placeholder="Compra, Nascimento na propriedade..."
@@ -295,7 +295,7 @@ export default function CadastroAnimais() {
           </div>
 
           <div>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Data de Nascimento (opcional)</label>
+            <label style={{ fontSize: '13px', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Data de Nascimento (opcional)</label>
             <Input
               type="date"
               value={dataNascimento}
@@ -305,7 +305,7 @@ export default function CadastroAnimais() {
           </div>
 
           <div>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Pasto Autorizado</label>
+            <label style={{ fontSize: '13px', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Pasto Autorizado</label>
             <Input
               type="text"
               placeholder="Digite o nome do pasto autorizado"
@@ -316,7 +316,7 @@ export default function CadastroAnimais() {
           </div>
 
           <div>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Lote</label>
+            <label style={{ fontSize: '13px', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Lote</label>
             <Input
               type="text"
               placeholder="Nome do lote"
@@ -327,7 +327,7 @@ export default function CadastroAnimais() {
           </div>
 
           <div>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Quantidade de Cabeças</label>
+            <label style={{ fontSize: '13px', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Quantidade de Cabeças</label>
             <Input
               type="number"
               placeholder="Quantidade"
@@ -338,7 +338,7 @@ export default function CadastroAnimais() {
           </div>
 
           <div>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Peso Médio por Cabeça (kg)</label>
+            <label style={{ fontSize: '13px', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Peso Médio por Cabeça (kg)</label>
             <Input
               type="number"
               step="0.01"
@@ -350,7 +350,7 @@ export default function CadastroAnimais() {
           </div>
 
           <div>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Celular para Alertas (WhatsApp)</label>
+            <label style={{ fontSize: '13px', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Celular para Alertas (WhatsApp)</label>
             <Input
               type="tel"
               placeholder="(00) 00000-0000"
@@ -369,53 +369,58 @@ export default function CadastroAnimais() {
         />
 
         <div style={{ marginTop: '20px' }}>
-          <label style={{ fontSize: '14px', color: '#666', marginBottom: '5px', display: 'block' }}>Observações</label>
+          <label style={{ fontSize: '13px', color: '#5b6577', marginBottom: '6px', display: 'block', fontWeight: 600 }}>Observações</label>
           <textarea
             value={observacoes}
             onChange={(e) => setObservacoes(e.target.value)}
             placeholder="Observações adicionais sobre o animal..."
+            className="campo"
             style={{
-              width: '100%',
-              padding: '10px 12px',
-              border: '1px solid #dce4f5',
-              borderRadius: '8px',
-              fontSize: '14px',
               resize: 'none',
               fontFamily: 'inherit',
               lineHeight: '1.5',
               minHeight: '80px',
+              margin: 0,
             }}
           />
         </div>
 
-        <div style={{ padding: '10px', background: '#e8f0fe', borderRadius: '8px', fontWeight: 'bold', marginBottom: '10px', marginTop: '20px' }}>
-          Peso Total do Lote: {pesoTotalFormatado} kg
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginTop: '20px', marginBottom: '20px' }}>
+          <div style={{ padding: '14px 16px', background: 'var(--color-primary-soft)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+            <div style={{ fontSize: '0.75rem', color: '#5b6577', fontWeight: 600, marginBottom: '4px' }}>PESO TOTAL DO LOTE</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a2233' }}>{pesoTotalFormatado} kg</div>
+          </div>
+          <div style={{ padding: '14px 16px', background: 'var(--color-primary-soft)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Scale size={18} color="#1a73e8" />
+            <div>
+              <div style={{ fontSize: '0.75rem', color: '#5b6577', fontWeight: 600, marginBottom: '4px' }}>TOTAL EM ARROBAS</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1a2233' }}>{totalArrobasFormatado} @</div>
+            </div>
+          </div>
         </div>
 
-        <div style={{ padding: '10px', background: '#e8f0fe', borderRadius: '8px', fontWeight: 'bold', marginBottom: '20px' }}>
-          Total em Arrobas: {totalArrobasFormatado} @
+        <div style={{ marginBottom: '24px' }}>
+          <ResumoCadastro
+            nomeFazenda={nomeFazenda}
+            idBrinco={idBrinco}
+            categoria={categoria}
+            lote={lote}
+            qtdCabecas={qtdCabecas}
+            pesoPorCabeca={pesoPorCabeca}
+            pesoTotalFormatado={pesoTotalFormatado}
+            totalArrobasFormatado={totalArrobasFormatado}
+            vacinasMedicamentos={vacinasMedicamentos}
+          />
         </div>
 
-        <ResumoCadastro
-          nomeFazenda={nomeFazenda}
-          idBrinco={idBrinco}
-          categoria={categoria}
-          lote={lote}
-          qtdCabecas={qtdCabecas}
-          pesoPorCabeca={pesoPorCabeca}
-          pesoTotalFormatado={pesoTotalFormatado}
-          totalArrobasFormatado={totalArrobasFormatado}
-          vacinasMedicamentos={vacinasMedicamentos}
-        />
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-          <Button onClick={handleLimpar} className="btn-responsivo" style={{ background: '#ff9800', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '10px', zIndex: 100 }}>
-            Limpar
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '10px' }}>
+          <Button onClick={handleLimpar} className="btn-responsivo" style={{ background: '#fef6e7', color: '#b45309', border: 'none', padding: '12px 22px', borderRadius: 'var(--radius-sm)', fontWeight: 700 }}>
+            <Eraser size={16} /> Limpar
           </Button>
-          <Button onClick={() => { handleLimpar(); navigate('/painel-principal'); }} className="btn-responsivo" style={{ background: '#6c757d', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '10px', zIndex: 100 }}>
+          <Button onClick={() => { handleLimpar(); navigate('/painel-principal'); }} className="btn-responsivo" style={{ background: 'var(--color-surface-alt)', color: '#3a4150', border: '1px solid var(--color-border)', padding: '12px 22px', borderRadius: 'var(--radius-sm)', fontWeight: 700 }}>
             Cancelar
           </Button>
-          <Button onClick={handleSalvar} className="btn-responsivo" disabled={carregando} style={{ background: carregando ? '#999' : '#2196F3', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '10px', zIndex: 100 }}>
+          <Button onClick={handleSalvar} className="btn-responsivo" disabled={carregando} style={{ background: carregando ? '#c9cfdb' : '#1a73e8', color: 'white', border: 'none', padding: '12px 22px', borderRadius: 'var(--radius-sm)', fontWeight: 700 }}>
             {carregando ? 'Salvando...' : 'Salvar'}
           </Button>
         </div>

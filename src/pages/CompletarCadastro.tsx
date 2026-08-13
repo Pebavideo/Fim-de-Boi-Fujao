@@ -68,12 +68,14 @@ export default function CompletarCadastro() {
 
   return (
     <LayoutPadrao>
-      <h2 style={{ marginBottom: '20px' }}>Completar Cadastro</h2>
-      <p style={{ color: '#666', marginBottom: '20px' }}>
-        Finalize seu cadastro para continuar usando o app.
-      </p>
+      <div style={{ marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid var(--color-border)' }}>
+        <h2 style={{ margin: 0, fontSize: '1.4rem' }}>Completar Cadastro</h2>
+        <p style={{ color: '#5b6577', margin: '8px 0 0' }}>
+          Finalize seu cadastro para continuar usando o app.
+        </p>
+      </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxWidth: '480px' }}>
         <Input
           type="text"
           className="campo"
@@ -102,7 +104,7 @@ export default function CompletarCadastro() {
           className="campo"
           value={uf}
           onChange={(e) => setUf(e.target.value)}
-          style={{ appearance: 'none', padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '1rem', width: '100%' }}
+          style={{ appearance: 'none', width: '100%' }}
         >
           <option value="">Selecione o estado (UF)</option>
           {estadosBR.map((estado) => (
@@ -119,8 +121,9 @@ export default function CompletarCadastro() {
             color: 'white',
             border: 'none',
             padding: '12px 24px',
-            borderRadius: '8px',
-            fontWeight: 'bold'
+            borderRadius: 'var(--radius-sm)',
+            fontWeight: 700,
+            marginTop: '12px'
           }}
         >
           {carregando ? 'Salvando...' : 'Salvar cadastro'}

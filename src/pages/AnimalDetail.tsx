@@ -6,6 +6,7 @@ import LayoutPadrao from '../components/LayoutPadrao';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import { formatTrackingTechnology } from '../utils/VeterinarioModule';
+import { Search, ArrowLeft, Printer, HeartPulse, ClipboardList, FileText } from 'lucide-react';
 
 interface AnimalData {
   [key: string]: any;
@@ -174,27 +175,29 @@ export default function AnimalDetail() {
       `}</style>
 
       {/* Header and Search Area */}
-      <div className="no-print" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="no-print" style={{ marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h2>Consulta de Precisão</h2>
-          <p style={{ color: '#666', marginTop: '6px' }}>Busque por brinco ou lote e visualize o prontuário completo.</p>
+          <h2 style={{ margin: 0, fontSize: '1.4rem' }}>Consulta de Precisão</h2>
+          <p style={{ color: '#5b6577', marginTop: '8px' }}>Busque por brinco ou lote e visualize o prontuário completo.</p>
         </div>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <Button onClick={() => navigate('/painel-principal')} className="btn-responsivo" style={{ background: '#9e9e9e', color: 'white', border: 'none', padding: '12px 18px', borderRadius: '10px' }}>
-            Voltar
+          <Button onClick={() => navigate('/painel-principal')} className="btn-responsivo" style={{ background: 'var(--color-surface-alt)', color: '#3a4150', border: '1px solid var(--color-border)', padding: '12px 18px', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
+            <ArrowLeft size={16} /> Voltar
           </Button>
           {selectedAnimal && (
-            <Button onClick={handlePrint} className="btn-responsivo" style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '12px 18px', borderRadius: '10px' }}>
-              Gerar Ficha Oficial
+            <Button onClick={handlePrint} className="btn-responsivo" style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '12px 18px', borderRadius: 'var(--radius-sm)', fontWeight: 700 }}>
+              <Printer size={16} /> Gerar Ficha Oficial
             </Button>
           )}
         </div>
       </div>
 
       {/* Search Fields (Double Search) */}
-      <div className="no-print" style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-        <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5' }}>
-          <h4 style={{ margin: '0 0 12px 0', color: '#1a73e8' }}>🔍 Busca por Brinco</h4>
+      <div className="no-print" style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+        <div style={{ background: 'white', padding: '20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+          <h4 style={{ margin: '0 0 12px 0', color: '#1a73e8', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem' }}>
+            <Search size={16} /> Busca por Brinco
+          </h4>
           <div style={{ display: 'flex', gap: '10px' }}>
             <Input
                 type="text"
@@ -202,17 +205,19 @@ export default function AnimalDetail() {
                 onChange={(e) => setSearchByBrinco(e.target.value)}
                 placeholder="Número do brinco"
                 className="campo"
-                style={{ flex: 1 }}
+                style={{ flex: 1, margin: 0 }}
                 onKeyDown={(e) => e.key === 'Enter' && searchBrinco()}
               />
-            <Button onClick={searchBrinco} disabled={loading} className="btn-responsivo" style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '12px 18px', borderRadius: '10px' }}>
+            <Button onClick={searchBrinco} disabled={loading} className="btn-responsivo" style={{ background: '#1a73e8', color: 'white', border: 'none', padding: '12px 18px', borderRadius: 'var(--radius-sm)', fontWeight: 700 }}>
               Buscar
             </Button>
           </div>
         </div>
 
-        <div style={{ background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5' }}>
-          <h4 style={{ margin: '0 0 12px 0', color: '#25d366' }}>🔍 Busca por Lote</h4>
+        <div style={{ background: 'white', padding: '20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+          <h4 style={{ margin: '0 0 12px 0', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem' }}>
+            <Search size={16} /> Busca por Lote
+          </h4>
           <div style={{ display: 'flex', gap: '10px' }}>
             <Input
                 type="text"
@@ -220,10 +225,10 @@ export default function AnimalDetail() {
                 onChange={(e) => setSearchByLote(e.target.value)}
                 placeholder="Nome do lote"
                 className="campo"
-                style={{ flex: 1 }}
+                style={{ flex: 1, margin: 0 }}
                 onKeyDown={(e) => e.key === 'Enter' && searchLote()}
               />
-            <Button onClick={searchLote} disabled={loading} className="btn-responsivo" style={{ background: '#25d366', color: 'white', border: 'none', padding: '12px 18px', borderRadius: '10px' }}>
+            <Button onClick={searchLote} disabled={loading} className="btn-responsivo" style={{ background: '#16a34a', color: 'white', border: 'none', padding: '12px 18px', borderRadius: 'var(--radius-sm)', fontWeight: 700 }}>
               Buscar
             </Button>
           </div>
@@ -232,26 +237,24 @@ export default function AnimalDetail() {
 
       {/* List of animals (when multiple from lote search) */}
       {!loading && animals.length > 1 && !selectedAnimal && (
-        <div className="no-print" style={{ marginBottom: '24px', background: 'white', padding: '20px', borderRadius: '15px', border: '1px solid #dce4f5' }}>
+        <div className="no-print" style={{ marginBottom: '24px', background: 'white', padding: '20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
           <h4 style={{ marginTop: 0, marginBottom: '16px' }}>Animais Encontrados ({animals.length})</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '14px' }}>
             {animals.map((animal) => (
               <div
                 key={animal.id}
                 onClick={() => setSelectedAnimal(animal)}
+                className="btn-interativo"
                 style={{
                   padding: '16px',
-                  background: '#f0f4ff',
-                  border: '1px solid #dce4f5',
-                  borderRadius: '10px',
+                  background: 'var(--color-primary-soft)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-md)',
                   cursor: 'pointer',
-                  transition: 'transform 0.2s',
                 }}
-                onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
-                onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
               >
                 <strong style={{ color: '#1a73e8' }}>{animal.idBrinco || 'Sem brinco'}</strong>
-                <p style={{ margin: '4px 0 0 0', color: '#666', fontSize: '14px' }}>
+                <p style={{ margin: '4px 0 0 0', color: '#5b6577', fontSize: '0.85rem' }}>
                   {animal.categoria || 'Sem categoria'} • Lote: {animal.lote || 'Sem lote'}
                 </p>
               </div>
@@ -261,69 +264,71 @@ export default function AnimalDetail() {
       )}
 
       {/* Loading state */}
-      {loading && <p>Carregando dados...</p>}
+      {loading && <p style={{ color: '#5b6577' }}>Carregando dados...</p>}
 
       {/* Prontuário (when animal selected) */}
       {!loading && selectedAnimal && (
         <div className="print-area" style={{ display: 'grid', gap: '20px' }}>
           {/* Card Principal */}
           <div style={{
-            background: '#1a73e8',
+            background: 'linear-gradient(135deg, #1a73e8 0%, #1456b3 100%)',
             color: 'white',
-            borderRadius: '18px',
+            borderRadius: 'var(--radius-lg)',
             padding: '24px',
-            boxShadow: '0 4px 12px rgba(26, 115, 232, 0.2)'
+            boxShadow: '0 12px 28px rgba(26, 115, 232, 0.25)'
           }}>
-            <h2 style={{ margin: '0 0 16px 0', fontSize: '24px' }}>Prontuário do Animal</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+            <h2 style={{ margin: '0 0 16px 0', fontSize: '1.4rem' }}>Prontuário do Animal</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
               <div>
-                <span style={{ fontSize: '14px', opacity: 0.9 }}>ID / Brinco</span>
-                <p style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 'bold' }}>{selectedAnimal.idBrinco || 'Não informado'}</p>
+                <span style={{ fontSize: '0.8rem', opacity: 0.85 }}>ID / Brinco</span>
+                <p style={{ margin: '4px 0 0 0', fontSize: '1.2rem', fontWeight: 700 }}>{selectedAnimal.idBrinco || 'Não informado'}</p>
               </div>
               <div>
-                <span style={{ fontSize: '14px', opacity: 0.9 }}>Categoria</span>
-                <p style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 'bold' }}>{selectedAnimal.categoria || 'Não informado'}</p>
+                <span style={{ fontSize: '0.8rem', opacity: 0.85 }}>Categoria</span>
+                <p style={{ margin: '4px 0 0 0', fontSize: '1.2rem', fontWeight: 700 }}>{selectedAnimal.categoria || 'Não informado'}</p>
               </div>
               <div>
-                <span style={{ fontSize: '14px', opacity: 0.9 }}>Tecnologia</span>
-                <p style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 'bold' }}>{formatTrackingTechnology(selectedAnimal)}</p>
+                <span style={{ fontSize: '0.8rem', opacity: 0.85 }}>Tecnologia</span>
+                <p style={{ margin: '4px 0 0 0', fontSize: '1.2rem', fontWeight: 700 }}>{formatTrackingTechnology(selectedAnimal)}</p>
               </div>
               <div>
-                <span style={{ fontSize: '14px', opacity: 0.9 }}>Data de Nascimento</span>
-                <p style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 'bold' }}>{formatValue(selectedAnimal.dataNascimento)}</p>
+                <span style={{ fontSize: '0.8rem', opacity: 0.85 }}>Data de Nascimento</span>
+                <p style={{ margin: '4px 0 0 0', fontSize: '1.2rem', fontWeight: 700 }}>{formatValue(selectedAnimal.dataNascimento)}</p>
               </div>
               {selectedAnimal.lote && (
                 <div>
-                  <span style={{ fontSize: '14px', opacity: 0.9 }}>Lote</span>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 'bold' }}>{selectedAnimal.lote}</p>
+                  <span style={{ fontSize: '0.8rem', opacity: 0.85 }}>Lote</span>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '1.2rem', fontWeight: 700 }}>{selectedAnimal.lote}</p>
                 </div>
               )}
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }} className="print-row">
             {/* Card de Saúde */}
             <div style={{
-              background: '#dcfce7',
-              border: '1px solid #22c55e',
-              borderRadius: '15px',
+              background: 'var(--color-success-light)',
+              border: '1px solid #bbf7d0',
+              borderRadius: 'var(--radius-lg)',
               padding: '20px'
             }}>
-              <h3 style={{ margin: '0 0 16px 0', color: '#166534', fontSize: '20px' }}>🏥 Histórico de Saúde e Vacinas</h3>
+              <h3 style={{ margin: '0 0 16px 0', color: '#166534', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <HeartPulse size={18} /> Histórico de Saúde e Vacinas
+              </h3>
               {Array.isArray(selectedAnimal.historicoSaude) && selectedAnimal.historicoSaude.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {selectedAnimal.historicoSaude.map((item: HistoricoSaude, index: number) => (
                     <div key={item.id || index} style={{
                       background: 'white',
                       padding: '14px',
-                      borderRadius: '10px',
+                      borderRadius: 'var(--radius-md)',
                       border: '1px solid #bbf7d0'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
                         <strong style={{ color: '#166534' }}>{item.tipo || 'Item'}</strong>
-                        <span style={{ color: '#166534', fontWeight: '500' }}>{formatValue(item.data)}</span>
+                        <span style={{ color: '#166534', fontWeight: 500, fontSize: '0.85rem' }}>{formatValue(item.data)}</span>
                       </div>
-                      <p style={{ margin: '8px 0 0 0', color: '#44403c' }}>{item.descricao || 'Sem descrição'}</p>
+                      <p style={{ margin: '8px 0 0 0', color: '#3a4150' }}>{item.descricao || 'Sem descrição'}</p>
                     </div>
                   ))}
                 </div>
@@ -332,42 +337,44 @@ export default function AnimalDetail() {
               )}
 
               {selectedAnimal.vacinasMedicamentos && (
-                <div style={{ marginTop: '16px', padding: '12px', background: 'white', borderRadius: '10px', border: '1px solid #bbf7d0' }}>
+                <div style={{ marginTop: '16px', padding: '12px', background: 'white', borderRadius: 'var(--radius-md)', border: '1px solid #bbf7d0' }}>
                   <strong style={{ color: '#166534' }}>Vacinas/Medicamentos Geral:</strong>
-                  <p style={{ margin: '6px 0 0 0', color: '#44403c' }}>{selectedAnimal.vacinasMedicamentos}</p>
+                  <p style={{ margin: '6px 0 0 0', color: '#3a4150' }}>{selectedAnimal.vacinasMedicamentos}</p>
                 </div>
               )}
             </div>
 
             {/* Card de Manejo */}
             <div style={{
-              background: '#fff7ed',
-              border: '1px solid #f97316',
-              borderRadius: '15px',
+              background: 'var(--color-warning-light)',
+              border: '1px solid #fed7aa',
+              borderRadius: 'var(--radius-lg)',
               padding: '20px'
             }}>
-              <h3 style={{ margin: '0 0 16px 0', color: '#9a3412', fontSize: '20px' }}>📋 Histórico de Manejo</h3>
+              <h3 style={{ margin: '0 0 16px 0', color: '#9a3412', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ClipboardList size={18} /> Histórico de Manejo
+              </h3>
               {Array.isArray(selectedAnimal.historicoManejo) && selectedAnimal.historicoManejo.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {selectedAnimal.historicoManejo.map((item: Manejo, index: number) => (
                     <div key={item.id || index} style={{
                       background: 'white',
                       padding: '14px',
-                      borderRadius: '10px',
+                      borderRadius: 'var(--radius-md)',
                       border: '1px solid #fed7aa'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
                         <strong style={{ color: '#9a3412' }}>{item.medicamento || 'Manejo'}</strong>
-                        <span style={{ color: '#9a3412', fontWeight: '500' }}>{formatValue(item.data)}</span>
+                        <span style={{ color: '#9a3412', fontWeight: 500, fontSize: '0.85rem' }}>{formatValue(item.data)}</span>
                       </div>
                       {item.lote && (
-                        <p style={{ margin: '4px 0', color: '#44403c' }}><strong>Lote:</strong> {item.lote}</p>
+                        <p style={{ margin: '4px 0', color: '#3a4150' }}><strong>Lote:</strong> {item.lote}</p>
                       )}
                       {item.qtdCabecas && (
-                        <p style={{ margin: '4px 0', color: '#44403c' }}><strong>Quantidade:</strong> {item.qtdCabecas} cabeças</p>
+                        <p style={{ margin: '4px 0', color: '#3a4150' }}><strong>Quantidade:</strong> {item.qtdCabecas} cabeças</p>
                       )}
                       {item.observacao && (
-                        <p style={{ margin: '4px 0 0 0', color: '#44403c' }}><strong>Observação:</strong> {item.observacao}</p>
+                        <p style={{ margin: '4px 0 0 0', color: '#3a4150' }}><strong>Observação:</strong> {item.observacao}</p>
                       )}
                     </div>
                   ))}
@@ -380,53 +387,55 @@ export default function AnimalDetail() {
 
           {/* Additional Info Card */}
           <div style={{
-            background: '#f0f4ff',
-            border: '1px solid #dce4f5',
-            borderRadius: '15px',
+            background: 'var(--color-primary-soft)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-lg)',
             padding: '20px'
           }}>
-            <h3 style={{ margin: '0 0 16px 0', color: '#1a73e8', fontSize: '20px' }}>📄 Informações Adicionais</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+            <h3 style={{ margin: '0 0 16px 0', color: '#1a73e8', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FileText size={18} /> Informações Adicionais
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
               {selectedAnimal.nomeFazenda && (
                 <div>
-                  <span style={{ color: '#4b5563', fontSize: '14px' }}>Fazenda</span>
-                  <p style={{ margin: '4px 0 0 0', fontWeight: 'bold', color: '#111827' }}>{selectedAnimal.nomeFazenda}</p>
+                  <span style={{ color: '#5b6577', fontSize: '0.8rem' }}>Fazenda</span>
+                  <p style={{ margin: '4px 0 0 0', fontWeight: 700, color: '#1a2233' }}>{selectedAnimal.nomeFazenda}</p>
                 </div>
               )}
               {selectedAnimal.pastoAutorizado && (
                 <div>
-                  <span style={{ color: '#4b5563', fontSize: '14px' }}>Pasto Autorizado</span>
-                  <p style={{ margin: '4px 0 0 0', fontWeight: 'bold', color: '#111827' }}>{selectedAnimal.pastoAutorizado}</p>
+                  <span style={{ color: '#5b6577', fontSize: '0.8rem' }}>Pasto Autorizado</span>
+                  <p style={{ margin: '4px 0 0 0', fontWeight: 700, color: '#1a2233' }}>{selectedAnimal.pastoAutorizado}</p>
                 </div>
               )}
               {selectedAnimal.origem && (
                 <div>
-                  <span style={{ color: '#4b5563', fontSize: '14px' }}>Origem</span>
-                  <p style={{ margin: '4px 0 0 0', fontWeight: 'bold', color: '#111827' }}>{selectedAnimal.origem}</p>
+                  <span style={{ color: '#5b6577', fontSize: '0.8rem' }}>Origem</span>
+                  <p style={{ margin: '4px 0 0 0', fontWeight: 700, color: '#1a2233' }}>{selectedAnimal.origem}</p>
                 </div>
               )}
               {selectedAnimal.pesoPorCabeca !== undefined && (
                 <div>
-                  <span style={{ color: '#4b5563', fontSize: '14px' }}>Peso Médio (kg)</span>
-                  <p style={{ margin: '4px 0 0 0', fontWeight: 'bold', color: '#111827' }}>{selectedAnimal.pesoPorCabeca}</p>
+                  <span style={{ color: '#5b6577', fontSize: '0.8rem' }}>Peso Médio (kg)</span>
+                  <p style={{ margin: '4px 0 0 0', fontWeight: 700, color: '#1a2233' }}>{selectedAnimal.pesoPorCabeca}</p>
                 </div>
               )}
               {selectedAnimal.peso !== undefined && (
                 <div>
-                  <span style={{ color: '#4b5563', fontSize: '14px' }}>Peso Total (kg)</span>
-                  <p style={{ margin: '4px 0 0 0', fontWeight: 'bold', color: '#111827' }}>{selectedAnimal.peso}</p>
+                  <span style={{ color: '#5b6577', fontSize: '0.8rem' }}>Peso Total (kg)</span>
+                  <p style={{ margin: '4px 0 0 0', fontWeight: 700, color: '#1a2233' }}>{selectedAnimal.peso}</p>
                 </div>
               )}
               {selectedAnimal.qtdCabecas !== undefined && (
                 <div>
-                  <span style={{ color: '#4b5563', fontSize: '14px' }}>Quantidade de Cabeças</span>
-                  <p style={{ margin: '4px 0 0 0', fontWeight: 'bold', color: '#111827' }}>{selectedAnimal.qtdCabecas}</p>
+                  <span style={{ color: '#5b6577', fontSize: '0.8rem' }}>Quantidade de Cabeças</span>
+                  <p style={{ margin: '4px 0 0 0', fontWeight: 700, color: '#1a2233' }}>{selectedAnimal.qtdCabecas}</p>
                 </div>
               )}
               {selectedAnimal.dataCadastro && (
                 <div>
-                  <span style={{ color: '#4b5563', fontSize: '14px' }}>Data de Cadastro</span>
-                  <p style={{ margin: '4px 0 0 0', fontWeight: 'bold', color: '#111827' }}>{formatValue(selectedAnimal.dataCadastro)}</p>
+                  <span style={{ color: '#5b6577', fontSize: '0.8rem' }}>Data de Cadastro</span>
+                  <p style={{ margin: '4px 0 0 0', fontWeight: 700, color: '#1a2233' }}>{formatValue(selectedAnimal.dataCadastro)}</p>
                 </div>
               )}
             </div>
@@ -435,9 +444,10 @@ export default function AnimalDetail() {
       )}
 
       {!loading && !selectedAnimal && animals.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-          <h3>Nenhum animal selecionado</h3>
-          <p>Use os campos de busca acima para encontrar um animal.</p>
+        <div style={{ textAlign: 'center', padding: '48px 20px', color: '#5b6577' }}>
+          <Search size={32} style={{ margin: '0 auto 12px', display: 'block', opacity: 0.5 }} />
+          <h3 style={{ color: '#1a2233', margin: '0 0 6px' }}>Nenhum animal selecionado</h3>
+          <p style={{ margin: 0 }}>Use os campos de busca acima para encontrar um animal.</p>
         </div>
       )}
     </LayoutPadrao>
